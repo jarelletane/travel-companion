@@ -2,6 +2,12 @@
 
 A portfolio project that turns a traveller's personally saved Google Maps places into realistic AI-generated itineraries.
 
+Live demo: https://travel-companion-jarl11.vercel.app/
+
+## Why I Built This
+
+I travel a lot and already do this planning work manually: saving cafes, restaurants, viewpoints, museums, and local spots in Google Maps, then later trying to turn those saved places into a realistic day-by-day itinerary. This project came from wanting to remove that repetitive manual step and use AI to plan around places I had already personally chosen.
+
 The prototype demonstrates the core product loop:
 
 - Import saved places from a Google Maps export.
