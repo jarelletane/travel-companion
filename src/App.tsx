@@ -10,11 +10,14 @@ import {
   MapPin,
   Moon,
   Navigation,
+  Plus,
   Route,
+  Search,
   Sparkles,
   Store,
   Utensils,
   Wand2,
+  X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -37,6 +40,7 @@ type Place = {
   x: number;
   y: number;
   saved: boolean;
+  source?: "saved" | "google" | "hotel";
 };
 
 type ItineraryDay = {
@@ -69,6 +73,7 @@ const savedPlaces: Place[] = [
     x: 48,
     y: 45,
     saved: true,
+    source: "saved",
   },
   {
     id: 2,
@@ -80,6 +85,7 @@ const savedPlaces: Place[] = [
     x: 53,
     y: 42,
     saved: true,
+    source: "saved",
   },
   {
     id: 3,
@@ -91,6 +97,7 @@ const savedPlaces: Place[] = [
     x: 45,
     y: 58,
     saved: true,
+    source: "saved",
   },
   {
     id: 4,
@@ -102,6 +109,7 @@ const savedPlaces: Place[] = [
     x: 41,
     y: 47,
     saved: true,
+    source: "saved",
   },
   {
     id: 5,
@@ -113,6 +121,7 @@ const savedPlaces: Place[] = [
     x: 58,
     y: 20,
     saved: true,
+    source: "saved",
   },
   {
     id: 6,
@@ -124,6 +133,7 @@ const savedPlaces: Place[] = [
     x: 62,
     y: 25,
     saved: true,
+    source: "saved",
   },
   {
     id: 7,
@@ -135,6 +145,7 @@ const savedPlaces: Place[] = [
     x: 60,
     y: 79,
     saved: true,
+    source: "saved",
   },
   {
     id: 8,
@@ -146,6 +157,7 @@ const savedPlaces: Place[] = [
     x: 29,
     y: 64,
     saved: true,
+    source: "saved",
   },
   {
     id: 9,
@@ -157,6 +169,7 @@ const savedPlaces: Place[] = [
     x: 70,
     y: 34,
     saved: false,
+    source: "hotel",
   },
   {
     id: 10,
@@ -168,6 +181,70 @@ const savedPlaces: Place[] = [
     x: 39,
     y: 50,
     saved: true,
+    source: "saved",
+  },
+];
+
+const googlePlaceResults: Place[] = [
+  {
+    id: 101,
+    name: "Mercato Testaccio",
+    category: "Restaurant",
+    area: "Testaccio",
+    note: "Added from Google for lunch stalls and local food.",
+    day: 3,
+    x: 55,
+    y: 73,
+    saved: true,
+    source: "google",
+  },
+  {
+    id: 102,
+    name: "Giardino degli Aranci",
+    category: "Viewpoint",
+    area: "Aventino",
+    note: "Added from Google as a quieter sunset viewpoint.",
+    day: 3,
+    x: 45,
+    y: 70,
+    saved: true,
+    source: "google",
+  },
+  {
+    id: 103,
+    name: "Chiostro del Bramante",
+    category: "Museum",
+    area: "Navona",
+    note: "Added from Google for an indoor culture stop near saved pins.",
+    day: 1,
+    x: 38,
+    y: 44,
+    saved: true,
+    source: "google",
+  },
+  {
+    id: 104,
+    name: "Faro - Caffe Specialty",
+    category: "Cafe",
+    area: "Sallustiano",
+    note: "Added from Google for specialty coffee near the hotel.",
+    day: 2,
+    x: 68,
+    y: 29,
+    saved: true,
+    source: "google",
+  },
+  {
+    id: 105,
+    name: "Rinascente Tritone",
+    category: "Shopping",
+    area: "Trevi",
+    note: "Added from Google as a compact shopping stop between walks.",
+    day: 2,
+    x: 61,
+    y: 39,
+    saved: true,
+    source: "google",
   },
 ];
 
@@ -209,22 +286,86 @@ export function App() {
     categories.filter((category) => category !== "Hotel")
   );
   const [generated, setGenerated] = useState(false);
+  const [googleQuery, setGoogleQuery] = useState("food, views, coffee");
+  const [addedGooglePlaceIds, setAddedGooglePlaceIds] = useState<number[]>([
+    101,
+    102,
+  ]);
+
+  const addedGooglePlaces = useMemo(
+    () =>
+      googlePlaceResults.filter((place) => addedGooglePlaceIds.includes(place.id)),
+    [addedGooglePlaceIds]
+  );
+
+  const tripPlaces = useMemo(
+    () => [...savedPlaces, ...addedGooglePlaces],
+    [addedGooglePlaces]
+  );
+
+  const plannedItinerary = useMemo(
+    () =>
+      itinerary.map((day) => {
+        const googlePlacesForDay = addedGooglePlaces
+          .filter((place) => place.day === day.day)
+          .map((place) => place.id);
+        const places = [...day.places, ...googlePlacesForDay];
+        return {
+          ...day,
+          places,
+          walking:
+            googlePlacesForDay.length > 1
+              ? day.day === 3
+                ? "4.4 km"
+                : "3.8 km"
+              : googlePlacesForDay.length === 1
+                ? day.day === 1
+                  ? "5.1 km"
+                  : "3.5 km"
+                : day.walking,
+          summary:
+            googlePlacesForDay.length > 0
+              ? `${day.summary} The AI also fits in ${googlePlacesForDay.length} Google-added ${
+                  googlePlacesForDay.length === 1 ? "place" : "places"
+                } where it clusters naturally.`
+              : day.summary,
+        };
+      }),
+    [addedGooglePlaces]
+  );
+
+  const googleSearchResults = useMemo(() => {
+    const terms = googleQuery
+      .toLowerCase()
+      .split(/[\s,]+/)
+      .filter(Boolean);
+    return googlePlaceResults.filter((place) =>
+      terms.length === 0
+        ? true
+        : terms.some((term) =>
+            [place.name, place.category, place.area, place.note]
+              .join(" ")
+              .toLowerCase()
+              .includes(term)
+          )
+    );
+  }, [googleQuery]);
 
   const visiblePlaces = useMemo(
     () =>
-      savedPlaces.filter((place) => {
+      tripPlaces.filter((place) => {
         const matchesCategory =
           place.category === "Hotel" || activeCategories.includes(place.category);
         const matchesDay = place.day === 0 || place.day === selectedDay;
         return matchesCategory && matchesDay;
       }),
-    [activeCategories, selectedDay]
+    [activeCategories, selectedDay, tripPlaces]
   );
 
-  const currentDay = itinerary.find((day) => day.day === selectedDay)!;
+  const currentDay = plannedItinerary.find((day) => day.day === selectedDay)!;
   const savedUseRate = Math.round(
-    (new Set(itinerary.flatMap((day) => day.places)).size /
-      savedPlaces.filter((place) => place.saved).length) *
+    (new Set(plannedItinerary.flatMap((day) => day.places)).size /
+      tripPlaces.filter((place) => place.saved).length) *
       100
   );
 
@@ -235,6 +376,18 @@ export function App() {
         ? current.filter((item) => item !== category)
         : [...current, category]
     );
+  }
+
+  function addGooglePlace(placeId: number) {
+    setAddedGooglePlaceIds((current) =>
+      current.includes(placeId) ? current : [...current, placeId]
+    );
+    setGenerated(false);
+  }
+
+  function removeGooglePlace(placeId: number) {
+    setAddedGooglePlaceIds((current) => current.filter((id) => id !== placeId));
+    setGenerated(false);
   }
 
   return (
@@ -255,6 +408,54 @@ export function App() {
             <Import size={18} />
             Import Google Maps export
           </button>
+
+          <div className="panel">
+            <div className="panel-title">
+              <Search size={18} />
+              Add places from Google
+            </div>
+            <label>
+              Search Google places
+              <input
+                value={googleQuery}
+                onChange={(event) => setGoogleQuery(event.target.value)}
+                placeholder="Try food, views, coffee..."
+              />
+            </label>
+            <div className="google-results" aria-label="Google place search results">
+              {googleSearchResults.map((place) => {
+                const Icon = categoryMeta[place.category].icon;
+                const isAdded = addedGooglePlaceIds.includes(place.id);
+                return (
+                  <article key={place.id} className="google-place">
+                    <div
+                      className="google-place-icon"
+                      style={{ backgroundColor: categoryMeta[place.category].color }}
+                    >
+                      <Icon size={15} />
+                    </div>
+                    <div>
+                      <strong>{place.name}</strong>
+                      <span>{place.area} · {place.category}</span>
+                    </div>
+                    <button
+                      className={isAdded ? "icon-action is-added" : "icon-action"}
+                      onClick={() =>
+                        isAdded ? removeGooglePlace(place.id) : addGooglePlace(place.id)
+                      }
+                      title={isAdded ? "Remove from trip" : "Add to trip"}
+                    >
+                      {isAdded ? <X size={16} /> : <Plus size={16} />}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+            <div className="google-shortlist">
+              <span>{addedGooglePlaces.length} Google places added to this trip</span>
+              <p>These are treated as user intent and weighted before generic AI suggestions.</p>
+            </div>
+          </div>
 
           <div className="panel">
             <div className="panel-title">
@@ -282,7 +483,7 @@ export function App() {
             <label>
               AI prompt
               <textarea
-                value="We have 4 days in Rome. We enjoy walking, great coffee, local food and history. We'd like a relaxed pace."
+                value={`We have 4 days in Rome. We enjoy walking, great coffee, local food and history. Please prioritise my saved Google Maps places and the ${addedGooglePlaces.length} Google places I just added.`}
                 readOnly
               />
             </label>
@@ -291,7 +492,7 @@ export function App() {
               onClick={() => setGenerated(true)}
             >
               {generated ? <Check size={18} /> : <Wand2 size={18} />}
-              {generated ? "Itinerary generated" : "Generate itinerary"}
+              {generated ? "Itinerary generated" : "Regenerate with Google places"}
             </button>
           </div>
 
@@ -330,8 +531,8 @@ export function App() {
             </div>
             <div className="metrics">
               <div>
-                <strong>{savedPlaces.filter((place) => place.saved).length}</strong>
-                saved places
+                <strong>{tripPlaces.filter((place) => place.saved).length}</strong>
+                trip places
               </div>
               <div>
                 <strong>{savedUseRate}%</strong>
@@ -348,7 +549,7 @@ export function App() {
             <div className="map-card">
               <div className="map-toolbar">
                 <div className="segmented" aria-label="Select itinerary day">
-                  {itinerary.map((day) => (
+                  {plannedItinerary.map((day) => (
                     <button
                       key={day.day}
                       className={selectedDay === day.day ? "is-selected" : ""}
@@ -382,7 +583,12 @@ export function App() {
                   return (
                     <button
                       key={place.id}
-                      className={place.category === "Hotel" ? "pin hotel-pin" : "pin"}
+                      className={[
+                        place.category === "Hotel" ? "pin hotel-pin" : "pin",
+                        place.source === "google" ? "google-pin" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                       style={
                         {
                           left: `${place.x}%`,
@@ -413,10 +619,13 @@ export function App() {
 
               <div className="stop-list">
                 {currentDay.places.map((placeId, index) => {
-                  const place = savedPlaces.find((item) => item.id === placeId)!;
+                  const place = tripPlaces.find((item) => item.id === placeId)!;
                   const Icon = categoryMeta[place.category].icon;
                   return (
-                    <article key={place.id} className="stop-card">
+                    <article
+                      key={place.id}
+                      className={place.source === "google" ? "stop-card is-google" : "stop-card"}
+                    >
                       <span className="stop-index">{index + 1}</span>
                       <div
                         className="stop-icon"
@@ -427,6 +636,9 @@ export function App() {
                       <div>
                         <h3>{place.name}</h3>
                         <p>{place.area} · {place.note}</p>
+                        {place.source === "google" && (
+                          <span className="source-tag">Added from Google</span>
+                        )}
                       </div>
                     </article>
                   );
