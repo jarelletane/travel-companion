@@ -1,376 +1,456 @@
 import {
+  BedDouble,
   CalendarDays,
   Check,
+  ChevronRight,
   Coffee,
   Compass,
-  Filter,
+  Gem,
+  Heart,
   Hotel,
   Import,
   Landmark,
+  LayoutDashboard,
+  Map,
   MapPin,
-  Moon,
-  Navigation,
+  Plane,
   Plus,
-  Route,
   Search,
+  Settings,
+  ShoppingBag,
   Sparkles,
-  Store,
+  Train,
   Utensils,
   Wand2,
+  Waves,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 type Category =
+  | "Accommodation"
   | "Cafe"
   | "Restaurant"
+  | "Bar"
   | "Museum"
   | "Shopping"
+  | "Market"
+  | "Beach"
   | "Viewpoint"
-  | "Bar"
-  | "Hotel";
+  | "Hidden Gem"
+  | "Transport"
+  | "Event";
 
-type Place = {
-  id: number;
+type SavedPlace = {
+  id: string;
   name: string;
   category: Category;
   area: string;
   note: string;
-  day: number;
   x: number;
   y: number;
-  saved: boolean;
-  source?: "saved" | "google" | "hotel";
+  source: "Google saved" | "Added from Google";
 };
 
-type ItineraryDay = {
-  day: number;
+type FixedEvent = {
+  id: string;
   title: string;
-  pace: string;
-  walking: string;
-  places: number[];
-  summary: string;
+  category: Category;
+  day: number;
+  time: string;
+  area: string;
+  note: string;
+  x: number;
+  y: number;
+};
+
+type Accommodation = {
+  id: string;
+  title: string;
+  dayRange: string;
+  area: string;
+  note: string;
+  x: number;
+  y: number;
+};
+
+type MapItem = {
+  id: string;
+  title: string;
+  category: Category;
+  area: string;
+  note: string;
+  x: number;
+  y: number;
+  kind: "stay" | "fixed" | "place";
+  day?: number;
+  time?: string;
 };
 
 const categoryMeta: Record<Category, { color: string; icon: React.ElementType }> = {
-  Cafe: { color: "#d97706", icon: Coffee },
-  Restaurant: { color: "#dc2626", icon: Utensils },
-  Museum: { color: "#7c3aed", icon: Landmark },
-  Shopping: { color: "#0891b2", icon: Store },
-  Viewpoint: { color: "#16a34a", icon: Compass },
-  Bar: { color: "#be185d", icon: Moon },
-  Hotel: { color: "#2563eb", icon: Hotel },
+  Accommodation: { color: "#7c6a55", icon: Hotel },
+  Cafe: { color: "#b87949", icon: Coffee },
+  Restaurant: { color: "#b65a54", icon: Utensils },
+  Bar: { color: "#8f6aa9", icon: Gem },
+  Museum: { color: "#7b83b9", icon: Landmark },
+  Shopping: { color: "#5798a6", icon: ShoppingBag },
+  Market: { color: "#8c9961", icon: ShoppingBag },
+  Beach: { color: "#4f9fb6", icon: Waves },
+  Viewpoint: { color: "#679269", icon: Compass },
+  "Hidden Gem": { color: "#c78b62", icon: Heart },
+  Transport: { color: "#68717b", icon: Train },
+  Event: { color: "#c06b8a", icon: CalendarDays },
 };
 
-const savedPlaces: Place[] = [
+const accommodations: Accommodation[] = [
   {
-    id: 1,
+    id: "stay-monti",
+    title: "Hotel Artemide",
+    dayRange: "Days 1-4",
+    area: "Monti",
+    note: "Primary base for morning starts and evening resets.",
+    x: 69,
+    y: 35,
+  },
+  {
+    id: "stay-airport",
+    title: "Fiumicino airport hotel",
+    dayRange: "Final night",
+    area: "FCO",
+    note: "Added as a practical stop before the early flight home.",
+    x: 16,
+    y: 80,
+  },
+];
+
+const fixedEvents: FixedEvent[] = [
+  {
+    id: "flight-in",
+    title: "Arrive from Brisbane via Doha",
+    category: "Transport",
+    day: 1,
+    time: "09:40",
+    area: "FCO",
+    note: "Leave buffer before the first planned stop.",
+    x: 16,
+    y: 80,
+  },
+  {
+    id: "dinner-friday",
+    title: "Dinner reservation at Roscioli",
+    category: "Restaurant",
+    day: 1,
+    time: "20:00",
+    area: "Campo de' Fiori",
+    note: "Fixed booking the AI must work around.",
+    x: 45,
+    y: 58,
+  },
+  {
+    id: "borghese-tour",
+    title: "Galleria Borghese timed entry",
+    category: "Event",
+    day: 2,
+    time: "11:00",
+    area: "Pinciano",
+    note: "Two-hour ticket window with a gentle park walk after.",
+    x: 62,
+    y: 25,
+  },
+  {
+    id: "wedding-drinks",
+    title: "Welcome drinks",
+    category: "Event",
+    day: 3,
+    time: "18:30",
+    area: "Trastevere",
+    note: "Custom event imported into the trip workspace.",
+    x: 32,
+    y: 62,
+  },
+];
+
+const savedPlaces: SavedPlace[] = [
+  {
+    id: "cafe-eustachio",
     name: "Sant'Eustachio Il Caffe",
     category: "Cafe",
     area: "Centro Storico",
-    note: "Pinned for espresso before the Pantheon.",
-    day: 1,
+    note: "Classic espresso stop near the Pantheon.",
     x: 48,
     y: 45,
-    saved: true,
-    source: "saved",
+    source: "Google saved",
   },
   {
-    id: 2,
+    id: "pantheon",
     name: "Pantheon",
     category: "Museum",
     area: "Centro Storico",
     note: "History anchor and good rainy-day option.",
-    day: 1,
     x: 53,
     y: 42,
-    saved: true,
-    source: "saved",
+    source: "Google saved",
   },
   {
-    id: 3,
-    name: "Roscioli",
-    category: "Restaurant",
-    area: "Campo de' Fiori",
-    note: "Saved for carbonara and wine list.",
-    day: 1,
-    x: 45,
-    y: 58,
-    saved: true,
-    source: "saved",
-  },
-  {
-    id: 4,
+    id: "governo",
     name: "Via del Governo Vecchio",
     category: "Shopping",
     area: "Navona",
     note: "Independent stores and vintage finds.",
-    day: 1,
     x: 41,
     y: 47,
-    saved: true,
-    source: "saved",
+    source: "Google saved",
   },
   {
-    id: 5,
-    name: "Villa Borghese",
-    category: "Viewpoint",
-    area: "Pinciano",
-    note: "Gentle afternoon reset with views.",
-    day: 2,
-    x: 58,
-    y: 20,
-    saved: true,
-    source: "saved",
-  },
-  {
-    id: 6,
-    name: "Galleria Borghese",
-    category: "Museum",
-    area: "Pinciano",
-    note: "Requires timed tickets.",
-    day: 2,
-    x: 62,
-    y: 25,
-    saved: true,
-    source: "saved",
-  },
-  {
-    id: 7,
-    name: "Trattoria Pennestri",
-    category: "Restaurant",
-    area: "Ostiense",
-    note: "Local dinner, short taxi back.",
-    day: 3,
-    x: 60,
-    y: 79,
-    saved: true,
-    source: "saved",
-  },
-  {
-    id: 8,
-    name: "Terrazza del Gianicolo",
-    category: "Viewpoint",
-    area: "Trastevere",
-    note: "Sunset walk with city panorama.",
-    day: 3,
-    x: 29,
-    y: 64,
-    saved: true,
-    source: "saved",
-  },
-  {
-    id: 9,
-    name: "Hotel Artemide",
-    category: "Hotel",
-    area: "Monti",
-    note: "Accommodation base.",
-    day: 0,
-    x: 70,
-    y: 34,
-    saved: false,
-    source: "hotel",
-  },
-  {
-    id: 10,
-    name: "Jerry Thomas Speakeasy",
-    category: "Bar",
-    area: "Navona",
-    note: "Optional late drink if energy allows.",
-    day: 1,
-    x: 39,
-    y: 50,
-    saved: true,
-    source: "saved",
-  },
-];
-
-const googlePlaceResults: Place[] = [
-  {
-    id: 101,
+    id: "testaccio",
     name: "Mercato Testaccio",
-    category: "Restaurant",
+    category: "Market",
     area: "Testaccio",
-    note: "Added from Google for lunch stalls and local food.",
-    day: 3,
+    note: "Food stalls for a casual lunch.",
     x: 55,
     y: 73,
-    saved: true,
-    source: "google",
+    source: "Added from Google",
   },
   {
-    id: 102,
+    id: "aranci",
     name: "Giardino degli Aranci",
     category: "Viewpoint",
     area: "Aventino",
-    note: "Added from Google as a quieter sunset viewpoint.",
-    day: 3,
+    note: "Quiet sunset viewpoint with softer crowds.",
     x: 45,
     y: 70,
-    saved: true,
-    source: "google",
+    source: "Added from Google",
   },
   {
-    id: 103,
-    name: "Chiostro del Bramante",
-    category: "Museum",
-    area: "Navona",
-    note: "Added from Google for an indoor culture stop near saved pins.",
-    day: 1,
-    x: 38,
-    y: 44,
-    saved: true,
-    source: "google",
-  },
-  {
-    id: 104,
+    id: "faro",
     name: "Faro - Caffe Specialty",
     category: "Cafe",
     area: "Sallustiano",
-    note: "Added from Google for specialty coffee near the hotel.",
-    day: 2,
+    note: "Specialty coffee near the hotel.",
     x: 68,
     y: 29,
-    saved: true,
-    source: "google",
+    source: "Added from Google",
   },
   {
-    id: 105,
-    name: "Rinascente Tritone",
-    category: "Shopping",
-    area: "Trevi",
-    note: "Added from Google as a compact shopping stop between walks.",
-    day: 2,
-    x: 61,
-    y: 39,
-    saved: true,
-    source: "google",
+    id: "jerry-thomas",
+    name: "Jerry Thomas Speakeasy",
+    category: "Bar",
+    area: "Navona",
+    note: "Optional late drink if the day still has energy.",
+    x: 39,
+    y: 50,
+    source: "Google saved",
+  },
+  {
+    id: "ostiense-dinner",
+    name: "Trattoria Pennestri",
+    category: "Restaurant",
+    area: "Ostiense",
+    note: "Local dinner option away from the busiest centre.",
+    x: 60,
+    y: 79,
+    source: "Google saved",
+  },
+  {
+    id: "hidden-courtyard",
+    name: "Chiostro del Bramante",
+    category: "Hidden Gem",
+    area: "Navona",
+    note: "Pretty indoor stop for a slower afternoon.",
+    x: 38,
+    y: 44,
+    source: "Added from Google",
   },
 ];
 
-const itinerary: ItineraryDay[] = [
+const initialDayAssignments: Record<string, number> = {
+  "cafe-eustachio": 1,
+  pantheon: 1,
+  governo: 1,
+  faro: 2,
+  testaccio: 3,
+  aranci: 3,
+};
+
+const dayNotes = [
   {
     day: 1,
-    title: "Centro Storico, coffee, and classic Rome",
-    pace: "Relaxed",
-    walking: "4.8 km",
-    places: [1, 2, 4, 3, 10],
-    summary:
-      "Start from saved coffee, loop through the Pantheon and Navona lanes, then keep dinner close so the day does not sprawl.",
+    title: "Arrival, centro storico and dinner",
+    freeTime: "13:00-19:00",
+    walking: "4.9 km",
+    transport: "Taxi from FCO, then walk",
   },
   {
     day: 2,
-    title: "Borghese art with a soft landing",
-    pace: "Balanced",
-    walking: "3.1 km",
-    places: [6, 5],
-    summary:
-      "Book the gallery window first, then let the park absorb the rest of the afternoon with flexible cafe time nearby.",
+    title: "Borghese morning and soft shopping loop",
+    freeTime: "14:00-18:30",
+    walking: "3.4 km",
+    transport: "Mostly walking",
   },
   {
     day: 3,
-    title: "Trastevere sunset into local dinner",
-    pace: "Leisurely",
-    walking: "3.7 km",
-    places: [8, 7],
-    summary:
-      "Use the viewpoint as the day anchor, then head south for a saved restaurant that feels more local than central.",
+    title: "Markets, Aventino and welcome drinks",
+    freeTime: "09:30-17:30",
+    walking: "4.2 km",
+    transport: "Metro plus walk",
+  },
+  {
+    day: 4,
+    title: "Open morning and airport reset",
+    freeTime: "09:00-15:00",
+    walking: "2.1 km",
+    transport: "Train to airport hotel",
   },
 ];
 
 const categories = Object.keys(categoryMeta) as Category[];
 
+const navItems = [
+  { label: "Dashboard", icon: LayoutDashboard },
+  { label: "Trip Overview", icon: CalendarDays },
+  { label: "Daily Itinerary", icon: MapPin },
+  { label: "Interactive Map", icon: Map },
+  { label: "Saved Places", icon: Heart },
+  { label: "AI Planner", icon: Sparkles },
+  { label: "Transport & Stays", icon: BedDouble },
+  { label: "Settings", icon: Settings },
+];
+
 export function App() {
   const [selectedDay, setSelectedDay] = useState(1);
+  const [selectedItemId, setSelectedItemId] = useState("cafe-eustachio");
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeCategories, setActiveCategories] = useState<Category[]>(
-    categories.filter((category) => category !== "Hotel")
+    categories.filter((category) => !["Accommodation", "Transport", "Event"].includes(category))
   );
-  const [generated, setGenerated] = useState(false);
-  const [googleQuery, setGoogleQuery] = useState("food, views, coffee");
-  const [addedGooglePlaceIds, setAddedGooglePlaceIds] = useState<number[]>([
-    101,
-    102,
-  ]);
+  const [dayAssignments, setDayAssignments] =
+    useState<Record<string, number>>(initialDayAssignments);
+  const [visitedIds, setVisitedIds] = useState<string[]>(["pantheon"]);
+  const [generated, setGenerated] = useState(true);
 
-  const addedGooglePlaces = useMemo(
+  const selectedDayMeta = dayNotes.find((day) => day.day === selectedDay)!;
+
+  const mapItems = useMemo<MapItem[]>(() => {
+    const stayItems = accommodations.map((stay) => ({
+      id: stay.id,
+      title: stay.title,
+      category: "Accommodation" as Category,
+      area: stay.area,
+      note: stay.note,
+      x: stay.x,
+      y: stay.y,
+      kind: "stay" as const,
+    }));
+    const eventItems = fixedEvents.map((event) => ({
+      id: event.id,
+      title: event.title,
+      category: event.category,
+      area: event.area,
+      note: event.note,
+      x: event.x,
+      y: event.y,
+      kind: "fixed" as const,
+      day: event.day,
+      time: event.time,
+    }));
+    const placeItems = savedPlaces.map((place) => ({
+      id: place.id,
+      title: place.name,
+      category: place.category,
+      area: place.area,
+      note: place.note,
+      x: place.x,
+      y: place.y,
+      kind: "place" as const,
+      day: dayAssignments[place.id],
+    }));
+
+    return [...stayItems, ...eventItems, ...placeItems];
+  }, [dayAssignments]);
+
+  const visibleMapItems = useMemo(
     () =>
-      googlePlaceResults.filter((place) => addedGooglePlaceIds.includes(place.id)),
-    [addedGooglePlaceIds]
-  );
-
-  const tripPlaces = useMemo(
-    () => [...savedPlaces, ...addedGooglePlaces],
-    [addedGooglePlaces]
-  );
-
-  const plannedItinerary = useMemo(
-    () =>
-      itinerary.map((day) => {
-        const googlePlacesForDay = addedGooglePlaces
-          .filter((place) => place.day === day.day)
-          .map((place) => place.id);
-        const places = [...day.places, ...googlePlacesForDay];
-        return {
-          ...day,
-          places,
-          walking:
-            googlePlacesForDay.length > 1
-              ? day.day === 3
-                ? "4.4 km"
-                : "3.8 km"
-              : googlePlacesForDay.length === 1
-                ? day.day === 1
-                  ? "5.1 km"
-                  : "3.5 km"
-                : day.walking,
-          summary:
-            googlePlacesForDay.length > 0
-              ? `${day.summary} The AI also fits in ${googlePlacesForDay.length} Google-added ${
-                  googlePlacesForDay.length === 1 ? "place" : "places"
-                } where it clusters naturally.`
-              : day.summary,
-        };
-      }),
-    [addedGooglePlaces]
-  );
-
-  const googleSearchResults = useMemo(() => {
-    const terms = googleQuery
-      .toLowerCase()
-      .split(/[\s,]+/)
-      .filter(Boolean);
-    return googlePlaceResults.filter((place) =>
-      terms.length === 0
-        ? true
-        : terms.some((term) =>
-            [place.name, place.category, place.area, place.note]
-              .join(" ")
-              .toLowerCase()
-              .includes(term)
-          )
-    );
-  }, [googleQuery]);
-
-  const visiblePlaces = useMemo(
-    () =>
-      tripPlaces.filter((place) => {
+      mapItems.filter((item) => {
+        const isAlwaysVisible = item.kind === "stay";
+        const matchesDay = isAlwaysVisible || !item.day || item.day === selectedDay;
         const matchesCategory =
-          place.category === "Hotel" || activeCategories.includes(place.category);
-        const matchesDay = place.day === 0 || place.day === selectedDay;
-        return matchesCategory && matchesDay;
+          item.kind !== "place" || activeCategories.includes(item.category);
+        return matchesDay && matchesCategory;
       }),
-    [activeCategories, selectedDay, tripPlaces]
+    [activeCategories, mapItems, selectedDay]
   );
 
-  const currentDay = plannedItinerary.find((day) => day.day === selectedDay)!;
-  const savedUseRate = Math.round(
-    (new Set(plannedItinerary.flatMap((day) => day.places)).size /
-      tripPlaces.filter((place) => place.saved).length) *
-      100
-  );
+  const filteredSavedPlaces = useMemo(() => {
+    const query = searchTerm.toLowerCase();
+    return savedPlaces.filter((place) => {
+      const matchesSearch =
+        query.length === 0 ||
+        [place.name, place.category, place.area, place.note, place.source]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+      return matchesSearch && activeCategories.includes(place.category);
+    });
+  }, [activeCategories, searchTerm]);
+
+  const timelineItems = useMemo(() => {
+    const fixed = fixedEvents
+      .filter((event) => event.day === selectedDay)
+      .map((event) => ({
+        id: event.id,
+        title: event.title,
+        category: event.category,
+        area: event.area,
+        note: event.note,
+        time: event.time,
+        kind: "Fixed" as const,
+      }));
+    const planned = savedPlaces
+      .filter((place) => dayAssignments[place.id] === selectedDay)
+      .map((place, index) => ({
+        id: place.id,
+        title: place.name,
+        category: place.category,
+        area: place.area,
+        note: place.note,
+        time: index === 0 ? "10:30" : index === 1 ? "12:00" : index === 2 ? "15:30" : "17:00",
+        kind: "Flexible" as const,
+      }));
+
+    return [...fixed, ...planned].sort((a, b) => a.time.localeCompare(b.time));
+  }, [dayAssignments, selectedDay]);
+
+  const selectedItem = mapItems.find((item) => item.id === selectedItemId) ?? mapItems[0];
+  const plannedCount = Object.keys(dayAssignments).length;
+  const visitedCount = visitedIds.length;
+  const fixedToday = fixedEvents.filter((event) => event.day === selectedDay).length;
+
+  function assignPlaceToDay(placeId: string, day: number) {
+    setDayAssignments((current) => ({ ...current, [placeId]: day }));
+    setSelectedDay(day);
+    setSelectedItemId(placeId);
+    setGenerated(false);
+  }
+
+  function removePlaceFromDay(placeId: string) {
+    setDayAssignments((current) => {
+      const next = { ...current };
+      delete next[placeId];
+      return next;
+    });
+    setGenerated(false);
+  }
+
+  function toggleVisited(placeId: string) {
+    setVisitedIds((current) =>
+      current.includes(placeId)
+        ? current.filter((id) => id !== placeId)
+        : [...current, placeId]
+    );
+  }
 
   function toggleCategory(category: Category) {
-    if (category === "Hotel") return;
+    if (["Accommodation", "Transport", "Event"].includes(category)) return;
     setActiveCategories((current) =>
       current.includes(category)
         ? current.filter((item) => item !== category)
@@ -378,132 +458,238 @@ export function App() {
     );
   }
 
-  function addGooglePlace(placeId: number) {
-    setAddedGooglePlaceIds((current) =>
-      current.includes(placeId) ? current : [...current, placeId]
-    );
-    setGenerated(false);
-  }
-
-  function removeGooglePlace(placeId: number) {
-    setAddedGooglePlaceIds((current) => current.filter((id) => id !== placeId));
-    setGenerated(false);
-  }
-
   return (
     <main className="app-shell">
+      <aside className="rail" aria-label="Workspace navigation">
+        <div className="brand">
+          <span className="brand-mark">
+            <Sparkles size={19} />
+          </span>
+          <div>
+            <strong>Travel Companion</strong>
+            <span>Personal travel workspace</span>
+          </div>
+        </div>
+
+        <nav className="nav-list">
+          {navItems.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <button key={item.label} className={index === 1 ? "is-active" : ""}>
+                <Icon size={17} />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="trip-card">
+          <span>Current trip</span>
+          <strong>Rome, Italy</strong>
+          <p>4 days · 2 stays · 9 saved places</p>
+        </div>
+      </aside>
+
       <section className="workspace">
-        <aside className="sidebar" aria-label="Trip setup">
-          <div className="brand">
-            <span className="brand-mark">
-              <Sparkles size={20} />
-            </span>
-            <div>
-              <strong>AI Travel Companion</strong>
-              <span>Saved places into real routes</span>
+        <header className="topbar">
+          <div>
+            <span className="eyebrow">MVP workspace direction</span>
+            <h1>Plan the trip around the things that are already yours.</h1>
+            <p>
+              Fixed bookings, accommodation, transport, notes and saved Google places come
+              together before AI creates the itinerary.
+            </p>
+          </div>
+          <button className="primary-action" onClick={() => setGenerated(true)}>
+            {generated ? <Check size={18} /> : <Wand2 size={18} />}
+            {generated ? "AI plan refreshed" : "Generate AI suggestions"}
+          </button>
+        </header>
+
+        <section className="summary-grid" aria-label="Trip summary">
+          <article>
+            <span>Fixed events</span>
+            <strong>{fixedEvents.length}</strong>
+            <p>Dinners, tours, transport and custom commitments.</p>
+          </article>
+          <article>
+            <span>Saved library</span>
+            <strong>{savedPlaces.length}</strong>
+            <p>Imported and Google-added places ready to plan.</p>
+          </article>
+          <article>
+            <span>Planned places</span>
+            <strong>{plannedCount}</strong>
+            <p>Flexible stops already assigned to itinerary days.</p>
+          </article>
+          <article>
+            <span>Visited</span>
+            <strong>{visitedCount}</strong>
+            <p>Progress captured without losing the saved library.</p>
+          </article>
+        </section>
+
+        <section className="planner-grid">
+          <div className="map-panel">
+            <div className="panel-heading">
+              <div>
+                <span>Interactive map</span>
+                <h2>Everything spatial, filtered by day.</h2>
+              </div>
+              <div className="day-switcher" aria-label="Select trip day">
+                {dayNotes.map((day) => (
+                  <button
+                    key={day.day}
+                    className={selectedDay === day.day ? "is-selected" : ""}
+                    onClick={() => setSelectedDay(day.day)}
+                  >
+                    Day {day.day}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="map-canvas" aria-label="Rome planning map">
+              <div className="river" />
+              <div className="street street-a" />
+              <div className="street street-b" />
+              <div className="street street-c" />
+              <svg className="route-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <polyline
+                  points={visibleMapItems
+                    .filter((item) => item.kind !== "stay")
+                    .map((item) => `${item.x},${item.y}`)
+                    .join(" ")}
+                />
+              </svg>
+              {visibleMapItems.map((item) => {
+                const Icon = categoryMeta[item.category].icon;
+                return (
+                  <button
+                    key={item.id}
+                    className={[
+                      "map-pin",
+                      item.kind,
+                      selectedItem.id === item.id ? "is-selected" : "",
+                    ].join(" ")}
+                    style={
+                      {
+                        left: `${item.x}%`,
+                        top: `${item.y}%`,
+                        "--pin-color": categoryMeta[item.category].color,
+                      } as React.CSSProperties
+                    }
+                    onClick={() => setSelectedItemId(item.id)}
+                    title={`${item.title} - ${item.note}`}
+                  >
+                    <Icon size={16} />
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="selected-detail">
+              <div
+                className="detail-icon"
+                style={{ backgroundColor: categoryMeta[selectedItem.category].color }}
+              >
+                {(() => {
+                  const Icon = categoryMeta[selectedItem.category].icon;
+                  return <Icon size={18} />;
+                })()}
+              </div>
+              <div>
+                <span>{selectedItem.kind === "fixed" ? "Fixed commitment" : selectedItem.category}</span>
+                <strong>{selectedItem.title}</strong>
+                <p>{selectedItem.area} · {selectedItem.note}</p>
+              </div>
             </div>
           </div>
 
-          <button className="import-button">
-            <Import size={18} />
-            Import Google Maps export
-          </button>
-
-          <div className="panel">
-            <div className="panel-title">
-              <Search size={18} />
-              Add places from Google
+          <aside className="timeline-panel" aria-label="Daily itinerary">
+            <div className="panel-heading compact">
+              <div>
+                <span>Daily itinerary</span>
+                <h2>{selectedDayMeta.title}</h2>
+              </div>
             </div>
-            <label>
-              Search Google places
-              <input
-                value={googleQuery}
-                onChange={(event) => setGoogleQuery(event.target.value)}
-                placeholder="Try food, views, coffee..."
-              />
-            </label>
-            <div className="google-results" aria-label="Google place search results">
-              {googleSearchResults.map((place) => {
-                const Icon = categoryMeta[place.category].icon;
-                const isAdded = addedGooglePlaceIds.includes(place.id);
+
+            <div className="day-stats">
+              <span>{selectedDayMeta.freeTime} free</span>
+              <span>{selectedDayMeta.walking} walking</span>
+              <span>{selectedDayMeta.transport}</span>
+            </div>
+
+            <div className="timeline-list">
+              {timelineItems.map((item) => {
+                const Icon = categoryMeta[item.category].icon;
+                const isVisited = visitedIds.includes(item.id);
                 return (
-                  <article key={place.id} className="google-place">
+                  <article
+                    key={item.id}
+                    className={[
+                      "timeline-item",
+                      selectedItem.id === item.id ? "is-selected" : "",
+                    ].join(" ")}
+                    onClick={() => setSelectedItemId(item.id)}
+                  >
+                    <time>{item.time}</time>
                     <div
-                      className="google-place-icon"
-                      style={{ backgroundColor: categoryMeta[place.category].color }}
+                      className="timeline-icon"
+                      style={{ backgroundColor: categoryMeta[item.category].color }}
                     >
                       <Icon size={15} />
                     </div>
                     <div>
-                      <strong>{place.name}</strong>
-                      <span>{place.area} · {place.category}</span>
+                      <span>{item.kind}</span>
+                      <strong>{item.title}</strong>
+                      <p>{item.area} · {item.note}</p>
+                      {item.kind === "Flexible" && (
+                        <button
+                          className={isVisited ? "mini-action is-done" : "mini-action"}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleVisited(item.id);
+                          }}
+                        >
+                          {isVisited ? "Visited" : "Mark visited"}
+                        </button>
+                      )}
                     </div>
-                    <button
-                      className={isAdded ? "icon-action is-added" : "icon-action"}
-                      onClick={() =>
-                        isAdded ? removeGooglePlace(place.id) : addGooglePlace(place.id)
-                      }
-                      title={isAdded ? "Remove from trip" : "Add to trip"}
-                    >
-                      {isAdded ? <X size={16} /> : <Plus size={16} />}
-                    </button>
                   </article>
                 );
               })}
             </div>
-            <div className="google-shortlist">
-              <span>{addedGooglePlaces.length} Google places added to this trip</span>
-              <p>These are treated as user intent and weighted before generic AI suggestions.</p>
-            </div>
-          </div>
+          </aside>
+        </section>
 
-          <div className="panel">
-            <div className="panel-title">
-              <CalendarDays size={18} />
-              Trip setup
+        <section className="lower-grid">
+          <div className="library-panel">
+            <div className="panel-heading">
+              <div>
+                <span>Saved places library</span>
+                <h2>Personal places stay separate until planned.</h2>
+              </div>
+              <button className="secondary-action">
+                <Import size={17} />
+                Import Google
+              </button>
             </div>
-            <label>
-              Destination
-              <input value="Rome, Italy" readOnly />
-            </label>
-            <div className="field-grid">
-              <label>
-                Dates
-                <input value="4 days" readOnly />
-              </label>
-              <label>
-                Pace
-                <input value="Relaxed" readOnly />
-              </label>
-            </div>
-            <label>
-              Accommodation
-              <input value="Hotel Artemide, Monti" readOnly />
-            </label>
-            <label>
-              AI prompt
-              <textarea
-                value={`We have 4 days in Rome. We enjoy walking, great coffee, local food and history. Please prioritise my saved Google Maps places and the ${addedGooglePlaces.length} Google places I just added.`}
-                readOnly
-              />
-            </label>
-            <button
-              className={generated ? "generate-button is-done" : "generate-button"}
-              onClick={() => setGenerated(true)}
-            >
-              {generated ? <Check size={18} /> : <Wand2 size={18} />}
-              {generated ? "Itinerary generated" : "Regenerate with Google places"}
-            </button>
-          </div>
 
-          <div className="panel">
-            <div className="panel-title">
-              <Filter size={18} />
-              Saved place filters
+            <div className="search-row">
+              <label>
+                <Search size={16} />
+                <input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search cafes, markets, hidden gems..."
+                />
+              </label>
             </div>
+
             <div className="filter-list">
               {categories
-                .filter((category) => category !== "Hotel")
+                .filter((category) => !["Accommodation", "Transport", "Event"].includes(category))
                 .map((category) => {
                   const Icon = categoryMeta[category].icon;
                   const isActive = activeCategories.includes(category);
@@ -520,150 +706,93 @@ export function App() {
                   );
                 })}
             </div>
-          </div>
-        </aside>
 
-        <section className="map-stage" aria-label="Interactive trip map">
-          <div className="topbar">
-            <div>
-              <span className="eyebrow">Personal itinerary workspace</span>
-              <h1>Rome plans shaped around places you already saved.</h1>
-            </div>
-            <div className="metrics">
-              <div>
-                <strong>{tripPlaces.filter((place) => place.saved).length}</strong>
-                trip places
-              </div>
-              <div>
-                <strong>{savedUseRate}%</strong>
-                used by AI
-              </div>
-              <div>
-                <strong>{currentDay.walking}</strong>
-                day walk
-              </div>
-            </div>
-          </div>
-
-          <div className="content-grid">
-            <div className="map-card">
-              <div className="map-toolbar">
-                <div className="segmented" aria-label="Select itinerary day">
-                  {plannedItinerary.map((day) => (
-                    <button
-                      key={day.day}
-                      className={selectedDay === day.day ? "is-selected" : ""}
-                      onClick={() => setSelectedDay(day.day)}
-                    >
-                      Day {day.day}
-                    </button>
-                  ))}
-                </div>
-                <span className="route-pill">
-                  <Route size={16} />
-                  Walking route
-                </span>
-              </div>
-
-              <div className="map-canvas">
-                <div className="river" />
-                <div className="street street-a" />
-                <div className="street street-b" />
-                <div className="street street-c" />
-                <svg className="route-line" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <polyline
-                    points={visiblePlaces
-                      .filter((place) => place.day !== 0)
-                      .map((place) => `${place.x},${place.y}`)
-                      .join(" ")}
-                  />
-                </svg>
-                {visiblePlaces.map((place) => {
-                  const Icon = categoryMeta[place.category].icon;
-                  return (
-                    <button
-                      key={place.id}
-                      className={[
-                        place.category === "Hotel" ? "pin hotel-pin" : "pin",
-                        place.source === "google" ? "google-pin" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      style={
-                        {
-                          left: `${place.x}%`,
-                          top: `${place.y}%`,
-                          "--pin-color": categoryMeta[place.category].color,
-                        } as React.CSSProperties
-                      }
-                      title={`${place.name} - ${place.note}`}
+            <div className="place-list">
+              {filteredSavedPlaces.map((place) => {
+                const Icon = categoryMeta[place.category].icon;
+                const assignedDay = dayAssignments[place.id];
+                const isVisited = visitedIds.includes(place.id);
+                return (
+                  <article key={place.id} className="place-card">
+                    <div
+                      className="place-icon"
+                      style={{ backgroundColor: categoryMeta[place.category].color }}
                     >
                       <Icon size={16} />
-                    </button>
-                  );
-                })}
+                    </div>
+                    <div className="place-copy">
+                      <span>{place.source} · {place.category}</span>
+                      <strong>{place.name}</strong>
+                      <p>{place.area} · {place.note}</p>
+                      <div className="place-actions">
+                        {dayNotes.map((day) => (
+                          <button
+                            key={day.day}
+                            className={assignedDay === day.day ? "is-active" : ""}
+                            onClick={() => assignPlaceToDay(place.id, day.day)}
+                          >
+                            Day {day.day}
+                          </button>
+                        ))}
+                        {assignedDay && (
+                          <button onClick={() => removePlaceFromDay(place.id)}>
+                            <X size={14} />
+                          </button>
+                        )}
+                        <button
+                          className={isVisited ? "visited-toggle is-active" : "visited-toggle"}
+                          onClick={() => toggleVisited(place.id)}
+                        >
+                          <Check size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+
+          <aside className="ai-panel" aria-label="AI planner">
+            <div className="panel-heading compact">
+              <div>
+                <span>AI planner</span>
+                <h2>Suggestions that respect the real trip.</h2>
               </div>
             </div>
 
-            <aside className="itinerary-panel">
-              <div className="day-header">
-                <span>Day {currentDay.day}</span>
-                <h2>{currentDay.title}</h2>
-                <p>{currentDay.summary}</p>
-              </div>
+            <div className="prompt-box">
+              <Sparkles size={18} />
+              <p>
+                We have 4 days in Rome. We enjoy good coffee, local food,
+                shopping and history. Keep walking reasonable and work around our
+                dinner reservation on Friday night.
+              </p>
+            </div>
 
-              <div className="day-stats">
-                <span>{currentDay.pace} pace</span>
-                <span>{currentDay.walking} walking</span>
-              </div>
+            <div className="ai-stack">
+              <article>
+                <span>Constraint found</span>
+                <strong>Friday dinner at 20:00</strong>
+                <p>Day 1 keeps the final stop close to Campo de' Fiori.</p>
+              </article>
+              <article>
+                <span>Saved-place fit</span>
+                <strong>{plannedCount} flexible places placed</strong>
+                <p>Nearby saves are clustered before generic recommendations.</p>
+              </article>
+              <article>
+                <span>Free-time gap</span>
+                <strong>{fixedToday} fixed commitments today</strong>
+                <p>The plan leaves breathing room around timed bookings.</p>
+              </article>
+            </div>
 
-              <div className="stop-list">
-                {currentDay.places.map((placeId, index) => {
-                  const place = tripPlaces.find((item) => item.id === placeId)!;
-                  const Icon = categoryMeta[place.category].icon;
-                  return (
-                    <article
-                      key={place.id}
-                      className={place.source === "google" ? "stop-card is-google" : "stop-card"}
-                    >
-                      <span className="stop-index">{index + 1}</span>
-                      <div
-                        className="stop-icon"
-                        style={{ backgroundColor: categoryMeta[place.category].color }}
-                      >
-                        <Icon size={16} />
-                      </div>
-                      <div>
-                        <h3>{place.name}</h3>
-                        <p>{place.area} · {place.note}</p>
-                        {place.source === "google" && (
-                          <span className="source-tag">Added from Google</span>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </aside>
-          </div>
-
-          <section className="insight-strip" aria-label="Portfolio highlights">
-            <article>
-              <MapPin size={20} />
-              <strong>Import layer</strong>
-              Parses saved Google Maps exports into typed, filterable place data.
-            </article>
-            <article>
-              <Navigation size={20} />
-              <strong>Spatial planning</strong>
-              Clusters nearby stops and keeps daily walking distance visible.
-            </article>
-            <article>
-              <Sparkles size={20} />
-              <strong>AI orchestration</strong>
-              Turns user intent, hotel location, and saved places into a plan.
-            </article>
-          </section>
+            <button className="primary-action wide" onClick={() => setGenerated(true)}>
+              <Wand2 size={18} />
+              Refine with AI
+            </button>
+          </aside>
         </section>
       </section>
     </main>
