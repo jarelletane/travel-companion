@@ -1,23 +1,24 @@
 :root {
-  color: #28231f;
-  background: #f5f1ea;
+  color: #2c2423;
+  background: #f4eee8;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --paper: #fffdf8;
-  --paper-soft: rgba(255, 253, 248, 0.74);
-  --linen: #f5f1ea;
-  --sand: #e9dfd0;
-  --ink: #28231f;
-  --muted: #786f67;
-  --line: rgba(40, 35, 31, 0.11);
-  --rose: #cfa09a;
-  --sage: #8fa486;
-  --clay: #b8795f;
-  --shadow: 0 22px 70px rgba(68, 54, 42, 0.09);
+  --paper: #fffaf4;
+  --paper-soft: rgba(255, 250, 244, 0.78);
+  --linen: #f4eee8;
+  --ink: #2c2423;
+  --muted: #80736f;
+  --line: rgba(66, 48, 45, 0.12);
+  --rose: #c99298;
+  --mauve: #9f8294;
+  --sage: #899b7b;
+  --clay: #b06f58;
+  --dusk: #42303d;
+  --shadow: 0 24px 70px rgba(68, 48, 45, 0.11);
 }
 
 * {
@@ -39,14 +40,34 @@ button {
 }
 
 .app-shell {
+  position: relative;
   display: grid;
   grid-template-columns: 286px minmax(0, 1fr);
   gap: 18px;
   min-height: 100vh;
   padding: 18px;
   background:
-    radial-gradient(circle at top left, rgba(207, 160, 154, 0.24), transparent 32%),
-    linear-gradient(135deg, #f8f3ed 0%, #efe8dd 46%, #f7f4ee 100%);
+    radial-gradient(circle at 12% 12%, rgba(201, 146, 152, 0.28), transparent 28%),
+    radial-gradient(circle at 90% 18%, rgba(137, 155, 123, 0.2), transparent 26%),
+    radial-gradient(circle at 76% 86%, rgba(159, 130, 148, 0.18), transparent 32%),
+    linear-gradient(135deg, #f8f1ec 0%, #eee4dd 48%, #f7f2ed 100%);
+}
+
+.app-shell::before {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background-image:
+    radial-gradient(circle, rgba(66, 48, 61, 0.18) 0 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 250, 244, 0.92) 0 1px, transparent 1.5px);
+  background-position:
+    34px 52px,
+    128px 170px;
+  background-size:
+    210px 180px,
+    260px 220px;
+  opacity: 0.26;
 }
 
 .rail,
@@ -55,8 +76,9 @@ button {
 .timeline-panel,
 .library-panel,
 .ai-panel {
+  position: relative;
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 28px;
   background: var(--paper-soft);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
@@ -70,6 +92,9 @@ button {
   gap: 22px;
   height: calc(100vh - 36px);
   padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 244, 0.9), rgba(245, 235, 229, 0.72)),
+    var(--paper-soft);
 }
 
 .brand {
@@ -83,9 +108,12 @@ button {
   width: 42px;
   height: 42px;
   place-items: center;
-  border-radius: 16px;
-  color: white;
-  background: #2f2a25;
+  border-radius: 50%;
+  color: #fffaf4;
+  background:
+    radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.5), transparent 18%),
+    linear-gradient(145deg, var(--dusk), #2c2423);
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 244, 0.18);
 }
 
 .brand strong,
@@ -115,26 +143,29 @@ button {
   gap: 10px;
   min-height: 42px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 18px;
   padding: 0 12px;
   color: var(--muted);
   background: transparent;
-  font-weight: 720;
+  font-weight: 760;
   text-align: left;
 }
 
 .nav-list button.is-active,
 .nav-list button:hover {
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.76);
+  background: rgba(255, 250, 244, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(66, 48, 45, 0.06);
 }
 
 .trip-card {
   margin-top: auto;
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 20px;
-  background: #fffaf3;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(201, 146, 152, 0.24), transparent 28%),
+    #fff8ef;
 }
 
 .trip-card span,
@@ -146,7 +177,7 @@ button {
 .ai-stack span {
   color: var(--muted);
   font-size: 0.76rem;
-  font-weight: 820;
+  font-weight: 760;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -183,10 +214,10 @@ button {
 }
 
 .topbar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 260px) auto;
+  gap: 16px;
+  align-items: start;
 }
 
 .topbar h1,
@@ -197,16 +228,46 @@ button {
 }
 
 .topbar h1 {
-  max-width: 850px;
+  max-width: 900px;
   margin-top: 8px;
-  font-size: clamp(2.05rem, 4vw, 4.4rem);
-  line-height: 0.98;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 4.4vw, 4.85rem);
+  font-weight: 500;
+  line-height: 0.96;
 }
 
 .topbar p {
   max-width: 720px;
   margin-top: 14px;
   font-size: 1rem;
+}
+
+.mood-card {
+  padding: 15px 16px;
+  border: 1px solid rgba(66, 48, 45, 0.1);
+  border-radius: 24px;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top right, rgba(159, 130, 148, 0.18), transparent 38%),
+    rgba(255, 250, 244, 0.76);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.mood-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.mood-card strong {
+  display: block;
+  margin-top: 7px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.22;
 }
 
 .primary-action,
@@ -219,14 +280,14 @@ button {
   border: 0;
   border-radius: 999px;
   padding: 0 17px;
-  font-weight: 820;
+  font-weight: 760;
   white-space: nowrap;
 }
 
 .primary-action {
   color: white;
-  background: #2f2a25;
-  box-shadow: 0 12px 30px rgba(47, 42, 37, 0.18);
+  background: linear-gradient(135deg, var(--dusk), #2c2423);
+  box-shadow: 0 14px 32px rgba(66, 48, 61, 0.22);
 }
 
 .primary-action.wide {
@@ -235,7 +296,7 @@ button {
 
 .secondary-action {
   color: var(--ink);
-  background: #fffaf3;
+  background: rgba(255, 250, 244, 0.78);
   border: 1px solid var(--line);
 }
 
@@ -249,14 +310,18 @@ button {
   min-height: 124px;
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.58);
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 244, 0.82), rgba(247, 237, 230, 0.68));
 }
 
 .summary-grid strong {
   display: block;
   margin: 8px 0 5px;
-  font-size: 2rem;
+  color: var(--dusk);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.15rem;
+  font-weight: 500;
   line-height: 1;
 }
 
@@ -289,7 +354,9 @@ button {
 
 .panel-heading h2 {
   margin-top: 5px;
-  font-size: 1.32rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+  font-weight: 500;
   line-height: 1.12;
 }
 
@@ -300,7 +367,7 @@ button {
   padding: 4px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 250, 244, 0.7);
 }
 
 .day-switcher button {
@@ -310,12 +377,12 @@ button {
   color: var(--muted);
   background: transparent;
   font-size: 0.84rem;
-  font-weight: 820;
+  font-weight: 760;
 }
 
 .day-switcher button.is-selected {
   color: white;
-  background: #2f2a25;
+  background: var(--dusk);
 }
 
 .map-canvas {
@@ -323,12 +390,13 @@ button {
   min-height: 555px;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 28px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px),
-    linear-gradient(135deg, #e5eadf, #f7efe2 48%, #e8e0d5);
-  background-size: 74px 74px, 74px 74px, auto;
+    radial-gradient(circle at 24% 20%, rgba(255, 250, 244, 0.56), transparent 26%),
+    linear-gradient(90deg, rgba(255, 250, 244, 0.36) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 250, 244, 0.36) 1px, transparent 1px),
+    linear-gradient(135deg, #dfe5db, #f3e5db 48%, #e5dcd6);
+  background-size: auto, 74px 74px, 74px 74px, auto;
 }
 
 .river {
@@ -337,7 +405,7 @@ button {
   background: linear-gradient(
     104deg,
     transparent 0 30%,
-    rgba(111, 168, 190, 0.28) 31% 39%,
+    rgba(122, 161, 174, 0.25) 31% 39%,
     transparent 40% 100%
   );
 }
@@ -346,7 +414,7 @@ button {
   position: absolute;
   height: 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 250, 244, 0.66);
 }
 
 .street-a {
@@ -380,7 +448,7 @@ button {
 
 .route-line polyline {
   fill: none;
-  stroke: rgba(47, 42, 37, 0.7);
+  stroke: rgba(66, 48, 61, 0.66);
   stroke-dasharray: 5 5;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -398,7 +466,7 @@ button {
   border-radius: 50%;
   color: white;
   background: var(--pin-color);
-  box-shadow: 0 12px 28px rgba(47, 42, 37, 0.2);
+  box-shadow: 0 12px 28px rgba(66, 48, 45, 0.2);
   translate: -50% -50%;
   transition:
     transform 170ms ease,
@@ -408,17 +476,17 @@ button {
 .map-pin:hover,
 .map-pin.is-selected {
   transform: translateY(-3px) scale(1.08);
-  box-shadow: 0 18px 36px rgba(47, 42, 37, 0.28);
+  box-shadow: 0 18px 36px rgba(66, 48, 45, 0.28);
 }
 
 .map-pin.stay {
   width: 46px;
   height: 46px;
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 .map-pin.fixed {
-  outline: 3px solid rgba(255, 255, 255, 0.64);
+  outline: 3px solid rgba(255, 250, 244, 0.72);
   outline-offset: 3px;
 }
 
@@ -430,8 +498,8 @@ button {
   margin-top: 12px;
   padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 20px;
-  background: #fffaf3;
+  border-radius: 24px;
+  background: rgba(255, 250, 244, 0.82);
 }
 
 .detail-icon,
@@ -445,7 +513,7 @@ button {
 .detail-icon {
   width: 44px;
   height: 44px;
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 .selected-detail strong,
@@ -470,11 +538,11 @@ button {
 .day-stats span {
   min-height: 40px;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 16px;
   color: #4c453f;
-  background: rgba(255, 255, 255, 0.64);
+  background: rgba(255, 250, 244, 0.66);
   font-size: 0.86rem;
-  font-weight: 820;
+  font-weight: 760;
 }
 
 .timeline-list,
@@ -488,8 +556,8 @@ button {
 .place-card,
 .ai-stack article {
   border: 1px solid var(--line);
-  border-radius: 20px;
-  background: #fffaf3;
+  border-radius: 24px;
+  background: rgba(255, 250, 244, 0.84);
 }
 
 .timeline-item {
@@ -505,21 +573,21 @@ button {
 
 .timeline-item:hover,
 .timeline-item.is-selected {
-  border-color: rgba(184, 121, 95, 0.42);
+  border-color: rgba(159, 130, 148, 0.42);
   transform: translateY(-1px);
 }
 
 .timeline-item time {
   color: var(--ink);
   font-size: 0.82rem;
-  font-weight: 850;
+  font-weight: 780;
 }
 
 .timeline-icon,
 .place-icon {
   width: 36px;
   height: 36px;
-  border-radius: 14px;
+  border-radius: 15px;
 }
 
 .timeline-item p,
@@ -538,7 +606,7 @@ button {
   color: var(--ink);
   background: white;
   font-size: 0.76rem;
-  font-weight: 820;
+  font-weight: 760;
 }
 
 .mini-action.is-done {
@@ -563,7 +631,7 @@ button {
   border-radius: 999px;
   padding: 0 14px;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 250, 244, 0.74);
 }
 
 .search-row input {
@@ -590,9 +658,9 @@ button {
   border-radius: 999px;
   padding: 0 11px;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 250, 244, 0.64);
   font-size: 0.82rem;
-  font-weight: 820;
+  font-weight: 760;
 }
 
 .filter-chip svg {
@@ -646,13 +714,13 @@ button {
   color: var(--muted);
   background: white;
   font-size: 0.76rem;
-  font-weight: 820;
+  font-weight: 760;
 }
 
 .place-actions button.is-active,
 .place-actions .visited-toggle.is-active {
   color: white;
-  background: #2f2a25;
+  background: var(--dusk);
 }
 
 .ai-panel {
@@ -666,9 +734,11 @@ button {
   gap: 10px;
   margin: 12px 0;
   padding: 14px;
-  border-radius: 20px;
+  border-radius: 24px;
   color: #4e453f;
-  background: #fffaf3;
+  background:
+    radial-gradient(circle at top left, rgba(201, 146, 152, 0.16), transparent 34%),
+    rgba(255, 250, 244, 0.86);
 }
 
 .prompt-box p {
@@ -717,6 +787,10 @@ button {
   .ai-panel {
     position: static;
   }
+
+  .topbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 980px) {
@@ -740,6 +814,10 @@ button {
   .day-switcher {
     width: 100%;
   }
+
+  .mood-card {
+    max-width: none;
+  }
 }
 
 @media (max-width: 680px) {
@@ -753,7 +831,7 @@ button {
   .timeline-panel,
   .library-panel,
   .ai-panel {
-    border-radius: 20px;
+    border-radius: 22px;
   }
 
   .workspace,
@@ -771,7 +849,7 @@ button {
   }
 
   .topbar h1 {
-    font-size: 2.2rem;
+    font-size: 2.25rem;
     line-height: 1;
   }
 

@@ -2,7 +2,6 @@ import {
   BedDouble,
   CalendarDays,
   Check,
-  ChevronRight,
   Coffee,
   Compass,
   Gem,
@@ -13,8 +12,6 @@ import {
   LayoutDashboard,
   Map,
   MapPin,
-  Plane,
-  Plus,
   Search,
   Settings,
   ShoppingBag,
@@ -467,7 +464,7 @@ export function App() {
           </span>
           <div>
             <strong>Travel Companion</strong>
-            <span>Personal travel workspace</span>
+            <span>A softer way to plan</span>
           </div>
         </div>
 
@@ -486,23 +483,27 @@ export function App() {
         <div className="trip-card">
           <span>Current trip</span>
           <strong>Rome, Italy</strong>
-          <p>4 days · 2 stays · 9 saved places</p>
+          <p>4 days · 2 stays · 9 saved places · relaxed pace</p>
         </div>
       </aside>
 
       <section className="workspace">
         <header className="topbar">
           <div>
-            <span className="eyebrow">MVP workspace direction</span>
-            <h1>Plan the trip around the things that are already yours.</h1>
+            <span className="eyebrow">Your trip, gathered gently</span>
+            <h1>Plan around the places, plans and little wishes you already carry.</h1>
             <p>
-              Fixed bookings, accommodation, transport, notes and saved Google places come
-              together before AI creates the itinerary.
+              Fixed bookings, stays, notes and saved Google places sit together
+              before AI shapes the day into something realistic and personal.
             </p>
+          </div>
+          <div className="mood-card" aria-label="Trip mood">
+            <span>Trip mood</span>
+            <strong>Slow mornings, good coffee, golden hour walks</strong>
           </div>
           <button className="primary-action" onClick={() => setGenerated(true)}>
             {generated ? <Check size={18} /> : <Wand2 size={18} />}
-            {generated ? "AI plan refreshed" : "Generate AI suggestions"}
+            {generated ? "Plan refreshed" : "Shape the days"}
           </button>
         </header>
 
@@ -510,22 +511,22 @@ export function App() {
           <article>
             <span>Fixed events</span>
             <strong>{fixedEvents.length}</strong>
-            <p>Dinners, tours, transport and custom commitments.</p>
+            <p>Dinners, tours, transport and moments that cannot move.</p>
           </article>
           <article>
             <span>Saved library</span>
             <strong>{savedPlaces.length}</strong>
-            <p>Imported and Google-added places ready to plan.</p>
+            <p>Personal places waiting quietly until they fit the day.</p>
           </article>
           <article>
             <span>Planned places</span>
             <strong>{plannedCount}</strong>
-            <p>Flexible stops already assigned to itinerary days.</p>
+            <p>Flexible stops placed where the route still feels kind.</p>
           </article>
           <article>
             <span>Visited</span>
             <strong>{visitedCount}</strong>
-            <p>Progress captured without losing the saved library.</p>
+            <p>Memories kept without losing the original wishlist.</p>
           </article>
         </section>
 
@@ -534,7 +535,7 @@ export function App() {
             <div className="panel-heading">
               <div>
                 <span>Interactive map</span>
-                <h2>Everything spatial, filtered by day.</h2>
+                <h2>A quiet map of what matters today.</h2>
               </div>
               <div className="day-switcher" aria-label="Select trip day">
                 {dayNotes.map((day) => (
@@ -668,7 +669,7 @@ export function App() {
             <div className="panel-heading">
               <div>
                 <span>Saved places library</span>
-                <h2>Personal places stay separate until planned.</h2>
+                <h2>Your saved places stay close until the right day.</h2>
               </div>
               <button className="secondary-action">
                 <Import size={17} />
@@ -757,16 +758,16 @@ export function App() {
             <div className="panel-heading compact">
               <div>
                 <span>AI planner</span>
-                <h2>Suggestions that respect the real trip.</h2>
+                <h2>Suggestions with the shape of your real trip.</h2>
               </div>
             </div>
 
             <div className="prompt-box">
               <Sparkles size={18} />
               <p>
-                We have 4 days in Rome. We enjoy good coffee, local food,
-                shopping and history. Keep walking reasonable and work around our
-                dinner reservation on Friday night.
+                We have 4 days in Rome. We love good coffee, local food,
+                shopping and history. Keep walking gentle and work around our
+                Friday dinner reservation.
               </p>
             </div>
 
@@ -774,23 +775,23 @@ export function App() {
               <article>
                 <span>Constraint found</span>
                 <strong>Friday dinner at 20:00</strong>
-                <p>Day 1 keeps the final stop close to Campo de' Fiori.</p>
+                <p>Day 1 stays close to Campo de' Fiori before the evening booking.</p>
               </article>
               <article>
                 <span>Saved-place fit</span>
                 <strong>{plannedCount} flexible places placed</strong>
-                <p>Nearby saves are clustered before generic recommendations.</p>
+                <p>Nearby saves are chosen before anything generic is suggested.</p>
               </article>
               <article>
                 <span>Free-time gap</span>
                 <strong>{fixedToday} fixed commitments today</strong>
-                <p>The plan leaves breathing room around timed bookings.</p>
+                <p>The day keeps breathing room around anything timed.</p>
               </article>
             </div>
 
             <button className="primary-action wide" onClick={() => setGenerated(true)}>
               <Wand2 size={18} />
-              Refine with AI
+              Soften the plan
             </button>
           </aside>
         </section>
