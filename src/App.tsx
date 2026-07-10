@@ -1,7 +1,11 @@
 import {
+  Archive,
+  BarChart3,
   BedDouble,
   CalendarDays,
+  Car,
   Check,
+  CircleDollarSign,
   Coffee,
   Compass,
   Gem,
@@ -10,8 +14,12 @@ import {
   Import,
   Landmark,
   LayoutDashboard,
+  Luggage,
   Map,
   MapPin,
+  Plane,
+  Plus,
+  Receipt,
   Search,
   Settings,
   ShoppingBag,
@@ -82,6 +90,35 @@ type MapItem = {
   kind: "stay" | "fixed" | "place";
   day?: number;
   time?: string;
+};
+
+type Trip = {
+  id: string;
+  title: string;
+  dates: string;
+  status: "upcoming" | "past";
+  summary: string;
+};
+
+type Collaborator = {
+  name: string;
+  role: string;
+  status: string;
+};
+
+type InboxItem = {
+  id: string;
+  title: string;
+  source: string;
+  status: string;
+  icon: React.ElementType;
+};
+
+type Module = {
+  title: string;
+  description: string;
+  metric: string;
+  icon: React.ElementType;
 };
 
 const categoryMeta: Record<Category, { color: string; icon: React.ElementType }> = {
@@ -307,10 +344,101 @@ const navItems = [
   { label: "Trip Overview", icon: CalendarDays },
   { label: "Daily Itinerary", icon: MapPin },
   { label: "Interactive Map", icon: Map },
-  { label: "Saved Places", icon: Heart },
-  { label: "AI Planner", icon: Sparkles },
-  { label: "Transport & Stays", icon: BedDouble },
+  { label: "Add Places", icon: Heart },
+  { label: "Create", icon: Sparkles },
+  { label: "Accommodation", icon: BedDouble },
+  { label: "Transport", icon: Train },
+  { label: "Activities", icon: CalendarDays },
+  { label: "Costs", icon: Receipt },
+  { label: "Stats", icon: BarChart3 },
   { label: "Settings", icon: Settings },
+];
+
+const trips: Trip[] = [
+  {
+    id: "euro-2026",
+    title: "Europe summer 2026",
+    dates: "8-24 Aug",
+    status: "upcoming",
+    summary: "Rome, Stockholm, Ljusdal, Pula, Venice and Florence.",
+  },
+  {
+    id: "rome-weekend",
+    title: "Rome saved places draft",
+    dates: "4 days",
+    status: "upcoming",
+    summary: "A focused planning board for saved cafes, markets and views.",
+  },
+  {
+    id: "japan-2025",
+    title: "Japan spring notes",
+    dates: "Apr 2025",
+    status: "past",
+    summary: "Visited places, costs and favourite neighbourhoods kept for next time.",
+  },
+];
+
+const collaborators: Collaborator[] = [
+  { name: "Jarelle", role: "Owner", status: "Planning" },
+  { name: "Mia", role: "Travel buddy", status: "Can edit costs" },
+  { name: "Sam", role: "Guest", status: "View only" },
+];
+
+const inboxItems: InboxItem[] = [
+  {
+    id: "qf937",
+    title: "QF 937 BNE to PER",
+    source: "Forwarded email",
+    status: "Flight added to Transport",
+    icon: Plane,
+  },
+  {
+    id: "airbnb-trastevere",
+    title: "Airbnb Trastevere Terrace",
+    source: "Booking email",
+    status: "Stay added to Accommodation",
+    icon: Hotel,
+  },
+  {
+    id: "lorde-pula",
+    title: "Lorde ticket in Pula",
+    source: "CoreEvent email",
+    status: "Event added to Activities",
+    icon: CalendarDays,
+  },
+];
+
+const modules: Module[] = [
+  {
+    title: "Accommodation",
+    description: "Airbnbs, hotels, check-in rules and address details.",
+    metric: "2 stays",
+    icon: BedDouble,
+  },
+  {
+    title: "Transport",
+    description: "Flights, trains, ferries, car hire and airport transfers.",
+    metric: "6 legs",
+    icon: Luggage,
+  },
+  {
+    title: "Entertainment & activities",
+    description: "Tours, restaurants, concerts, weddings and timed bookings.",
+    metric: "4 events",
+    icon: CalendarDays,
+  },
+  {
+    title: "Cost tracking",
+    description: "Split expenses with friends, Tricount-style.",
+    metric: "$1,842 tracked",
+    icon: CircleDollarSign,
+  },
+  {
+    title: "Stats",
+    description: "Costs, kilometres, visited places and trip pace.",
+    metric: "18.6 km planned",
+    icon: BarChart3,
+  },
 ];
 
 export function App() {
@@ -420,7 +548,6 @@ export function App() {
   const selectedItem = mapItems.find((item) => item.id === selectedItemId) ?? mapItems[0];
   const plannedCount = Object.keys(dayAssignments).length;
   const visitedCount = visitedIds.length;
-  const fixedToday = fixedEvents.filter((event) => event.day === selectedDay).length;
 
   function assignPlaceToDay(placeId: string, day: number) {
     setDayAssignments((current) => ({ ...current, [placeId]: day }));
@@ -481,53 +608,124 @@ export function App() {
         </nav>
 
         <div className="trip-card">
-          <span>Current trip</span>
-          <strong>Rome, Italy</strong>
-          <p>4 days · 2 stays · 9 saved places · relaxed pace</p>
+          <span>Logged in as</span>
+          <strong>Jarelle</strong>
+          <p>3 trips · 2 collaborators · email import on</p>
         </div>
       </aside>
 
       <section className="workspace">
         <header className="topbar">
           <div>
-            <span className="eyebrow">Your trip, gathered gently</span>
-            <h1>Plan around the places, plans and little wishes you already carry.</h1>
+            <span className="eyebrow">Your trips, gathered gently</span>
+            <h1>Forward the booking, save the bakery, invite the friend, then let the day take shape.</h1>
             <p>
-              Fixed bookings, stays, notes and saved Google places sit together
-              before AI shapes the day into something realistic and personal.
+              A calm TripIt-like home for bookings, collaborators, saved Google
+              places, costs and AI planning, without making you enter the same
+              trip twice.
             </p>
           </div>
           <div className="mood-card" aria-label="Trip mood">
             <span>Trip mood</span>
-            <strong>Slow mornings, good coffee, golden hour walks</strong>
+            <strong>Shared notes, cute bakeries, easy days, no duplicate admin</strong>
           </div>
           <button className="primary-action" onClick={() => setGenerated(true)}>
             {generated ? <Check size={18} /> : <Wand2 size={18} />}
-            {generated ? "Plan refreshed" : "Shape the days"}
+            {generated ? "Workspace refreshed" : "Create the plan"}
           </button>
         </header>
 
         <section className="summary-grid" aria-label="Trip summary">
           <article>
-            <span>Fixed events</span>
-            <strong>{fixedEvents.length}</strong>
-            <p>Dinners, tours, transport and moments that cannot move.</p>
+            <span>Upcoming trips</span>
+            <strong>{trips.filter((trip) => trip.status === "upcoming").length}</strong>
+            <p>Create a new trip or jump back into one already underway.</p>
           </article>
           <article>
-            <span>Saved library</span>
+            <span>Email imports</span>
+            <strong>{inboxItems.length}</strong>
+            <p>Forwarded bookings become transport, stays and events.</p>
+          </article>
+          <article>
+            <span>Saved places</span>
             <strong>{savedPlaces.length}</strong>
-            <p>Personal places waiting quietly until they fit the day.</p>
+            <p>Google categories become a personal place library.</p>
           </article>
           <article>
-            <span>Planned places</span>
-            <strong>{plannedCount}</strong>
-            <p>Flexible stops placed where the route still feels kind.</p>
+            <span>Costs tracked</span>
+            <strong>$1.8k</strong>
+            <p>Shared expenses live beside the itinerary.</p>
           </article>
-          <article>
-            <span>Visited</span>
-            <strong>{visitedCount}</strong>
-            <p>Memories kept without losing the original wishlist.</p>
-          </article>
+        </section>
+
+        <section className="hub-grid" aria-label="Trip dashboard">
+          <div className="hub-panel">
+            <div className="panel-heading">
+              <div>
+                <span>Dashboard</span>
+                <h2>Create a trip or return to one already in motion.</h2>
+              </div>
+              <button className="secondary-action">
+                <Plus size={17} />
+                New trip
+              </button>
+            </div>
+            <div className="trip-list">
+              {trips.map((trip) => (
+                <article key={trip.id} className="trip-row">
+                  <div>
+                    <span>{trip.status === "upcoming" ? "Upcoming" : "Past"}</span>
+                    <strong>{trip.title}</strong>
+                    <p>{trip.dates} · {trip.summary}</p>
+                  </div>
+                  <Archive size={17} />
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <aside className="hub-panel compact-hub">
+            <div className="panel-heading compact">
+              <div>
+                <span>Collaborators</span>
+                <h2>Plan with the people coming along.</h2>
+              </div>
+            </div>
+            <div className="collab-list">
+              {collaborators.map((person) => (
+                <article key={person.name}>
+                  <div className="avatar">{person.name.slice(0, 1)}</div>
+                  <div>
+                    <strong>{person.name}</strong>
+                    <p>{person.role} · {person.status}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </aside>
+
+          <aside className="hub-panel compact-hub">
+            <div className="panel-heading compact">
+              <div>
+                <span>Email inbox</span>
+                <h2>Forward bookings and let the app file them.</h2>
+              </div>
+            </div>
+            <div className="inbox-list">
+              {inboxItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <article key={item.id}>
+                    <Icon size={17} />
+                    <div>
+                      <strong>{item.title}</strong>
+                      <p>{item.source} · {item.status}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </aside>
         </section>
 
         <section className="planner-grid">
@@ -664,12 +862,26 @@ export function App() {
           </aside>
         </section>
 
+        <section className="module-grid" aria-label="Trip modules">
+          {modules.map((module) => {
+            const Icon = module.icon;
+            return (
+              <article key={module.title} className="module-card">
+                <Icon size={19} />
+                <span>{module.metric}</span>
+                <strong>{module.title}</strong>
+                <p>{module.description}</p>
+              </article>
+            );
+          })}
+        </section>
+
         <section className="lower-grid">
           <div className="library-panel">
             <div className="panel-heading">
               <div>
                 <span>Saved places library</span>
-                <h2>Your saved places stay close until the right day.</h2>
+                <h2>Look up any place, import saved lists, then choose what belongs on this trip.</h2>
               </div>
               <button className="secondary-action">
                 <Import size={17} />
@@ -683,7 +895,7 @@ export function App() {
                 <input
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search cafes, markets, hidden gems..."
+                  placeholder="Search bakeries, markets, saved lists..."
                 />
               </label>
             </div>
@@ -758,34 +970,34 @@ export function App() {
             <div className="panel-heading compact">
               <div>
                 <span>AI planner</span>
-                <h2>Suggestions with the shape of your real trip.</h2>
+                <h2>Create a day from everything already in the trip.</h2>
               </div>
             </div>
 
             <div className="prompt-box">
               <Sparkles size={18} />
               <p>
-                We have 4 days in Rome. We love good coffee, local food,
-                shopping and history. Keep walking gentle and work around our
-                Friday dinner reservation.
+                Use my forwarded bookings, accommodation, transport, saved Google
+                places, collaborators' notes and costs. Suggest a gentle day in
+                Rome with bakeries nearby and no clashes.
               </p>
             </div>
 
             <div className="ai-stack">
               <article>
                 <span>Constraint found</span>
-                <strong>Friday dinner at 20:00</strong>
-                <p>Day 1 stays close to Campo de' Fiori before the evening booking.</p>
+                <strong>Email bookings parsed</strong>
+                <p>Flights, check-ins and tickets are filed into the right tabs.</p>
               </article>
               <article>
                 <span>Saved-place fit</span>
                 <strong>{plannedCount} flexible places placed</strong>
-                <p>Nearby saves are chosen before anything generic is suggested.</p>
+                <p>Nearby Google saves are chosen before generic suggestions.</p>
               </article>
               <article>
-                <span>Free-time gap</span>
-                <strong>{fixedToday} fixed commitments today</strong>
-                <p>The day keeps breathing room around anything timed.</p>
+                <span>Shared context</span>
+                <strong>{collaborators.length} travellers included</strong>
+                <p>Costs, notes and preferences stay attached to the trip.</p>
               </article>
             </div>
 

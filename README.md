@@ -14,14 +14,17 @@ The product is designed to feel more like a calm travel workspace than a traditi
 
 Core workflow:
 
-- Create a trip with destination and travel dates.
-- Add accommodation, transport, restaurant bookings, tours and custom events.
+- Log in and create a trip or view upcoming and past trips.
+- Add travellers as collaborators.
+- Forward booking emails so the app can parse flights, trains, accommodation, tickets and events into the itinerary.
+- Add accommodation, transport, restaurant bookings, tours and custom events manually when needed.
 - Import or add saved Google Maps places into a personal place library.
 - Search and filter saved places by category.
 - View accommodation, fixed events, saved places and daily routes on a central map.
 - Add saved places to specific itinerary days.
 - Mark places as visited without removing them from the library.
 - Generate AI suggestions that work around fixed events, free time, walking distance and user preferences.
+- Track shared costs and view trip stats such as spend, kilometres and visited places.
 
 ## Product Feel
 
@@ -36,6 +39,9 @@ The design direction is calm, premium and spacious, with inspiration from Notion
 - Saved Places Library
 - AI Planner
 - Transport & Accommodation
+- Entertainment & Activities
+- Cost Tracking
+- Stats
 - Trip Settings
 
 ## Tech Stack
@@ -57,6 +63,7 @@ npm run dev
 
 - Google Maps import
 - TripIt integration
+- Email forwarding and itinerary parsing
 - Weather-aware planning
 - Public transport suggestions
 - Collaborative planning
