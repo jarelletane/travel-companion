@@ -1,4 +1,4 @@
-# AI Travel Companion
+# Mysa
 
 A premium personal travel workspace that combines trip commitments, accommodation, transport, saved Google Maps places, an interactive map and AI itinerary planning.
 
@@ -10,11 +10,12 @@ I travel a lot and already do this planning work manually: saving cafes, restaur
 
 ## MVP Direction
 
-The product is designed to feel more like a calm travel workspace than a traditional itinerary planner. Users bring all trip information into one place, then AI helps organise the plan around fixed commitments and flexible saved places.
+The product is designed to feel like a clean, focused travel workspace rather than a traditional itinerary planner. The current prototype is a multi-step app flow with AI planning, Google Maps saved-place integration and TripIt-style email forwarding.
 
 Core workflow:
 
 - Log in and create a trip or view upcoming and past trips.
+- Keep the dashboard simple, with the next upcoming trip as the main focus and past trips in a separate tab.
 - Add travellers as collaborators.
 - Forward booking emails so the app can parse flights, trains, accommodation, tickets and events into the itinerary.
 - Add accommodation, transport, restaurant bookings, tours and custom events manually when needed.
@@ -25,6 +26,16 @@ Core workflow:
 - Mark places as visited without removing them from the library.
 - Generate AI suggestions that work around fixed events, free time, walking distance and user preferences.
 - Track shared costs and view trip stats such as spend, kilometres and visited places.
+- Keep account-level navigation focused on Dashboard, Trips, Costs, My Places, Imports, Invite and Settings.
+- Keep trip-specific actions like Create and Stats inside the selected trip.
+
+Visual direction:
+
+- Clean white/cream background.
+- Editorial serif headings.
+- Orange-to-lilac gradient accents.
+- Collapsible left navigation so the main trip content stays central.
+- Separate pages for each major workflow to avoid information overload.
 
 ## Product Feel
 
@@ -33,15 +44,16 @@ The design direction is calm, premium and spacious, with inspiration from Notion
 ## Primary Screens Represented
 
 - Dashboard
-- Trip Overview
+- Trips
 - Daily Itinerary
 - Interactive Map
-- Saved Places Library
-- AI Planner
+- My Places Library
+- Trip-specific AI Create
 - Transport & Accommodation
 - Entertainment & Activities
 - Cost Tracking
-- Stats
+- Trip-specific Stats
+- Invite
 - Trip Settings
 
 ## Tech Stack

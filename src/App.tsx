@@ -1,1013 +1,922 @@
 import {
-  Archive,
+  ArrowRight,
   BarChart3,
-  BedDouble,
   CalendarDays,
-  Car,
-  Check,
+  ChevronLeft,
+  ChevronRight,
   CircleDollarSign,
-  Coffee,
-  Compass,
-  Gem,
-  Heart,
+  Home,
   Hotel,
-  Import,
-  Landmark,
-  LayoutDashboard,
-  Luggage,
+  Inbox,
+  Mail,
   Map,
   MapPin,
   Plane,
   Plus,
-  Receipt,
   Search,
   Settings,
-  ShoppingBag,
   Sparkles,
   Train,
-  Utensils,
-  Wand2,
-  Waves,
+  UserPlus,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import mysaLogo from "./assets/mysa-logo.png";
 
-type Category =
-  | "Accommodation"
-  | "Cafe"
-  | "Restaurant"
-  | "Bar"
-  | "Museum"
-  | "Shopping"
-  | "Market"
-  | "Beach"
-  | "Viewpoint"
-  | "Hidden Gem"
-  | "Transport"
-  | "Event";
+type Page =
+  | "login"
+  | "dashboard"
+  | "trips"
+  | "places"
+  | "imports"
+  | "costs"
+  | "invite"
+  | "settings";
 
-type SavedPlace = {
-  id: string;
-  name: string;
-  category: Category;
-  area: string;
-  note: string;
-  x: number;
-  y: number;
-  source: "Google saved" | "Added from Google";
+type TripTab = "upcoming" | "past";
+type TripSection = "overview" | "create" | "stats";
+
+const upcomingTrip = {
+  title: "Europe summer 2026",
+  dates: "8-24 Aug",
+  route: "Brisbane → Rome → Stockholm → Pula → Venice → Florence → Rome",
+  cost: "$4,820",
+  travellers: 3,
+  imported: 14,
+  places: 38,
+  daysToGo: 28,
 };
 
-type FixedEvent = {
-  id: string;
-  title: string;
-  category: Category;
-  day: number;
-  time: string;
-  area: string;
-  note: string;
-  x: number;
-  y: number;
-};
-
-type Accommodation = {
-  id: string;
-  title: string;
-  dayRange: string;
-  area: string;
-  note: string;
-  x: number;
-  y: number;
-};
-
-type MapItem = {
-  id: string;
-  title: string;
-  category: Category;
-  area: string;
-  note: string;
-  x: number;
-  y: number;
-  kind: "stay" | "fixed" | "place";
-  day?: number;
-  time?: string;
-};
-
-type Trip = {
-  id: string;
-  title: string;
-  dates: string;
-  status: "upcoming" | "past";
-  summary: string;
-};
-
-type Collaborator = {
-  name: string;
-  role: string;
-  status: string;
-};
-
-type InboxItem = {
-  id: string;
-  title: string;
-  source: string;
-  status: string;
-  icon: React.ElementType;
-};
-
-type Module = {
-  title: string;
-  description: string;
-  metric: string;
-  icon: React.ElementType;
-};
-
-const categoryMeta: Record<Category, { color: string; icon: React.ElementType }> = {
-  Accommodation: { color: "#7c6a55", icon: Hotel },
-  Cafe: { color: "#b87949", icon: Coffee },
-  Restaurant: { color: "#b65a54", icon: Utensils },
-  Bar: { color: "#8f6aa9", icon: Gem },
-  Museum: { color: "#7b83b9", icon: Landmark },
-  Shopping: { color: "#5798a6", icon: ShoppingBag },
-  Market: { color: "#8c9961", icon: ShoppingBag },
-  Beach: { color: "#4f9fb6", icon: Waves },
-  Viewpoint: { color: "#679269", icon: Compass },
-  "Hidden Gem": { color: "#c78b62", icon: Heart },
-  Transport: { color: "#68717b", icon: Train },
-  Event: { color: "#c06b8a", icon: CalendarDays },
-};
-
-const accommodations: Accommodation[] = [
-  {
-    id: "stay-monti",
-    title: "Hotel Artemide",
-    dayRange: "Days 1-4",
-    area: "Monti",
-    note: "Primary base for morning starts and evening resets.",
-    x: 69,
-    y: 35,
-  },
-  {
-    id: "stay-airport",
-    title: "Fiumicino airport hotel",
-    dayRange: "Final night",
-    area: "FCO",
-    note: "Added as a practical stop before the early flight home.",
-    x: 16,
-    y: 80,
-  },
+const pastTrips = [
+  { title: "Japan spring notes", dates: "Apr 2025", cost: "$3,940" },
+  { title: "Melbourne long weekend", dates: "Nov 2025", cost: "$860" },
 ];
 
-const fixedEvents: FixedEvent[] = [
+const navItems: Array<{ page: Page; label: string; icon: React.ElementType }> = [
+  { page: "dashboard", label: "Dashboard", icon: Home },
+  { page: "trips", label: "Trips", icon: CalendarDays },
+  { page: "costs", label: "Costs", icon: CircleDollarSign },
+  { page: "places", label: "My Places", icon: MapPin },
+  { page: "imports", label: "Imports", icon: Inbox },
+  { page: "invite", label: "Invite", icon: UserPlus },
+  { page: "settings", label: "Settings", icon: Settings },
+];
+
+const itinerary = [
   {
-    id: "flight-in",
-    title: "Arrive from Brisbane via Doha",
-    category: "Transport",
-    day: 1,
     time: "09:40",
-    area: "FCO",
-    note: "Leave buffer before the first planned stop.",
-    x: 16,
-    y: 80,
-  },
-  {
-    id: "dinner-friday",
-    title: "Dinner reservation at Roscioli",
-    category: "Restaurant",
-    day: 1,
-    time: "20:00",
-    area: "Campo de' Fiori",
-    note: "Fixed booking the AI must work around.",
-    x: 45,
-    y: 58,
-  },
-  {
-    id: "borghese-tour",
-    title: "Galleria Borghese timed entry",
-    category: "Event",
-    day: 2,
-    time: "11:00",
-    area: "Pinciano",
-    note: "Two-hour ticket window with a gentle park walk after.",
-    x: 62,
-    y: 25,
-  },
-  {
-    id: "wedding-drinks",
-    title: "Welcome drinks",
-    category: "Event",
-    day: 3,
-    time: "18:30",
-    area: "Trastevere",
-    note: "Custom event imported into the trip workspace.",
-    x: 32,
-    y: 62,
-  },
-];
-
-const savedPlaces: SavedPlace[] = [
-  {
-    id: "cafe-eustachio",
-    name: "Sant'Eustachio Il Caffe",
-    category: "Cafe",
-    area: "Centro Storico",
-    note: "Classic espresso stop near the Pantheon.",
-    x: 48,
-    y: 45,
-    source: "Google saved",
-  },
-  {
-    id: "pantheon",
-    name: "Pantheon",
-    category: "Museum",
-    area: "Centro Storico",
-    note: "History anchor and good rainy-day option.",
-    x: 53,
-    y: 42,
-    source: "Google saved",
-  },
-  {
-    id: "governo",
-    name: "Via del Governo Vecchio",
-    category: "Shopping",
-    area: "Navona",
-    note: "Independent stores and vintage finds.",
-    x: 41,
-    y: 47,
-    source: "Google saved",
-  },
-  {
-    id: "testaccio",
-    name: "Mercato Testaccio",
-    category: "Market",
-    area: "Testaccio",
-    note: "Food stalls for a casual lunch.",
-    x: 55,
-    y: 73,
-    source: "Added from Google",
-  },
-  {
-    id: "aranci",
-    name: "Giardino degli Aranci",
-    category: "Viewpoint",
-    area: "Aventino",
-    note: "Quiet sunset viewpoint with softer crowds.",
-    x: 45,
-    y: 70,
-    source: "Added from Google",
-  },
-  {
-    id: "faro",
-    name: "Faro - Caffe Specialty",
-    category: "Cafe",
-    area: "Sallustiano",
-    note: "Specialty coffee near the hotel.",
-    x: 68,
-    y: 29,
-    source: "Added from Google",
-  },
-  {
-    id: "jerry-thomas",
-    name: "Jerry Thomas Speakeasy",
-    category: "Bar",
-    area: "Navona",
-    note: "Optional late drink if the day still has energy.",
-    x: 39,
-    y: 50,
-    source: "Google saved",
-  },
-  {
-    id: "ostiense-dinner",
-    name: "Trattoria Pennestri",
-    category: "Restaurant",
-    area: "Ostiense",
-    note: "Local dinner option away from the busiest centre.",
-    x: 60,
-    y: 79,
-    source: "Google saved",
-  },
-  {
-    id: "hidden-courtyard",
-    name: "Chiostro del Bramante",
-    category: "Hidden Gem",
-    area: "Navona",
-    note: "Pretty indoor stop for a slower afternoon.",
-    x: 38,
-    y: 44,
-    source: "Added from Google",
-  },
-];
-
-const initialDayAssignments: Record<string, number> = {
-  "cafe-eustachio": 1,
-  pantheon: 1,
-  governo: 1,
-  faro: 2,
-  testaccio: 3,
-  aranci: 3,
-};
-
-const dayNotes = [
-  {
-    day: 1,
-    title: "Arrival, centro storico and dinner",
-    freeTime: "13:00-19:00",
-    walking: "4.9 km",
-    transport: "Taxi from FCO, then walk",
-  },
-  {
-    day: 2,
-    title: "Borghese morning and soft shopping loop",
-    freeTime: "14:00-18:30",
-    walking: "3.4 km",
-    transport: "Mostly walking",
-  },
-  {
-    day: 3,
-    title: "Markets, Aventino and welcome drinks",
-    freeTime: "09:30-17:30",
-    walking: "4.2 km",
-    transport: "Metro plus walk",
-  },
-  {
-    day: 4,
-    title: "Open morning and airport reset",
-    freeTime: "09:00-15:00",
-    walking: "2.1 km",
-    transport: "Train to airport hotel",
-  },
-];
-
-const categories = Object.keys(categoryMeta) as Category[];
-
-const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard },
-  { label: "Trip Overview", icon: CalendarDays },
-  { label: "Daily Itinerary", icon: MapPin },
-  { label: "Interactive Map", icon: Map },
-  { label: "Add Places", icon: Heart },
-  { label: "Create", icon: Sparkles },
-  { label: "Accommodation", icon: BedDouble },
-  { label: "Transport", icon: Train },
-  { label: "Activities", icon: CalendarDays },
-  { label: "Costs", icon: Receipt },
-  { label: "Stats", icon: BarChart3 },
-  { label: "Settings", icon: Settings },
-];
-
-const trips: Trip[] = [
-  {
-    id: "euro-2026",
-    title: "Europe summer 2026",
-    dates: "8-24 Aug",
-    status: "upcoming",
-    summary: "Rome, Stockholm, Ljusdal, Pula, Venice and Florence.",
-  },
-  {
-    id: "rome-weekend",
-    title: "Rome saved places draft",
-    dates: "4 days",
-    status: "upcoming",
-    summary: "A focused planning board for saved cafes, markets and views.",
-  },
-  {
-    id: "japan-2025",
-    title: "Japan spring notes",
-    dates: "Apr 2025",
-    status: "past",
-    summary: "Visited places, costs and favourite neighbourhoods kept for next time.",
-  },
-];
-
-const collaborators: Collaborator[] = [
-  { name: "Jarelle", role: "Owner", status: "Planning" },
-  { name: "Mia", role: "Travel buddy", status: "Can edit costs" },
-  { name: "Sam", role: "Guest", status: "View only" },
-];
-
-const inboxItems: InboxItem[] = [
-  {
-    id: "qf937",
-    title: "QF 937 BNE to PER",
-    source: "Forwarded email",
-    status: "Flight added to Transport",
+    label: "Flight arrives",
+    detail: "FCO Terminal 3 · parsed from forwarded Qantas email",
     icon: Plane,
   },
   {
-    id: "airbnb-trastevere",
-    title: "Airbnb Trastevere Terrace",
-    source: "Booking email",
-    status: "Stay added to Accommodation",
+    time: "15:00",
+    label: "Check in",
+    detail: "Airbnb Trastevere Terrace Studio · Piazza di Santa Rufina",
     icon: Hotel,
   },
   {
-    id: "lorde-pula",
-    title: "Lorde ticket in Pula",
-    source: "CoreEvent email",
-    status: "Event added to Activities",
-    icon: CalendarDays,
+    time: "17:30",
+    label: "Saved place nearby",
+    detail: "Sant'Eustachio Il Caffe · from Google saved places",
+    icon: MapPin,
   },
 ];
 
-const modules: Module[] = [
+const tripLegs = [
   {
-    title: "Accommodation",
-    description: "Airbnbs, hotels, check-in rules and address details.",
-    metric: "2 stays",
-    icon: BedDouble,
+    id: "rome",
+    label: "Rome",
+    dates: "9-13 Aug",
+    base: "Trastevere",
+    days: [
+      {
+        id: "rome-1",
+        label: "Day 1",
+        date: "Sun 9 Aug",
+        title: "Arrival and Trastevere check-in",
+        summary: "Land, settle into the Airbnb and keep the first evening gentle.",
+        distance: "2.4 km",
+        items: itinerary,
+      },
+      {
+        id: "rome-2",
+        label: "Day 2",
+        date: "Mon 10 Aug",
+        title: "Coffee, Centro Storico and saved bakeries",
+        summary: "AI clusters saved Google places around the Pantheon and Campo de' Fiori.",
+        distance: "4.1 km",
+        items: [
+          {
+            time: "09:30",
+            label: "Faro coffee option",
+            detail: "Saved under Coffee · near the morning route",
+            icon: MapPin,
+          },
+          {
+            time: "11:00",
+            label: "Pantheon area",
+            detail: "History stop with bakeries and shops nearby",
+            icon: Map,
+          },
+          {
+            time: "15:30",
+            label: "Forno Campo de' Fiori",
+            detail: "TikTok bakery save · add if still nearby",
+            icon: MapPin,
+          },
+        ],
+      },
+      {
+        id: "rome-3",
+        label: "Day 3",
+        date: "Tue 11 Aug",
+        title: "Markets and viewpoints",
+        summary: "A slower day using saved markets, viewpoints and flexible lunch options.",
+        distance: "5.2 km",
+        items: [
+          {
+            time: "10:00",
+            label: "Mercato Testaccio",
+            detail: "Saved market · lunch-friendly",
+            icon: MapPin,
+          },
+          {
+            time: "16:30",
+            label: "Giardino degli Aranci",
+            detail: "Sunset viewpoint option from Google saved places",
+            icon: MapPin,
+          },
+        ],
+      },
+    ],
   },
   {
-    title: "Transport",
-    description: "Flights, trains, ferries, car hire and airport transfers.",
-    metric: "6 legs",
-    icon: Luggage,
+    id: "stockholm",
+    label: "Stockholm",
+    dates: "13-16 Aug",
+    base: "Villa Dahlia / Ljusdal",
+    days: [
+      {
+        id: "stockholm-1",
+        label: "Day 5",
+        date: "Thu 13 Aug",
+        title: "Fly to Stockholm",
+        summary: "Transport-heavy day with hotel check-in and a light evening.",
+        distance: "1.8 km",
+        items: [
+          {
+            time: "08:55",
+            label: "FCO to ARN",
+            detail: "Austrian flight · parsed from email import",
+            icon: Plane,
+          },
+          {
+            time: "15:00",
+            label: "Check in Villa Dahlia",
+            detail: "Accommodation tab · Vasastan",
+            icon: Hotel,
+          },
+        ],
+      },
+      {
+        id: "stockholm-2",
+        label: "Day 6",
+        date: "Fri 14 Aug",
+        title: "Car pickup and Ljusdal transfer",
+        summary: "Car hire, checkout and drive to the wedding accommodation.",
+        distance: "0.9 km",
+        items: [
+          {
+            time: "10:30",
+            label: "Pick up Enterprise",
+            detail: "Arlanda Terminal 2/4 · transport tab",
+            icon: Train,
+          },
+          {
+            time: "15:00",
+            label: "Check in Airbnb - Larisa",
+            detail: "Ljusdal stay · house rules stored",
+            icon: Hotel,
+          },
+        ],
+      },
+    ],
   },
   {
-    title: "Entertainment & activities",
-    description: "Tours, restaurants, concerts, weddings and timed bookings.",
-    metric: "4 events",
-    icon: CalendarDays,
+    id: "italy-2",
+    label: "Pula, Venice, Florence",
+    dates: "16-23 Aug",
+    base: "Multi-city",
+    days: [
+      {
+        id: "pula-1",
+        label: "Day 9",
+        date: "Tue 18 Aug",
+        title: "Pula concert night",
+        summary: "Keep the day light before the Lorde concert at the arena.",
+        distance: "2.7 km",
+        items: [
+          {
+            time: "20:00",
+            label: "Lorde: The Ultrasound Tour",
+            detail: "CoreEvent ticket email · two lawn tickets",
+            icon: CalendarDays,
+          },
+        ],
+      },
+      {
+        id: "venice-1",
+        label: "Day 10",
+        date: "Wed 19 Aug",
+        title: "Ferry to Venice",
+        summary: "Transport day with check-in and a short evening walk.",
+        distance: "2.2 km",
+        items: [
+          {
+            time: "07:00",
+            label: "Kompas ferry",
+            detail: "Pula to Venice · imported transport",
+            icon: Train,
+          },
+          {
+            time: "15:00",
+            label: "Check in Luxury Venetian Rooms",
+            detail: "Castello accommodation",
+            icon: Hotel,
+          },
+        ],
+      },
+    ],
   },
-  {
-    title: "Cost tracking",
-    description: "Split expenses with friends, Tricount-style.",
-    metric: "$1,842 tracked",
-    icon: CircleDollarSign,
-  },
-  {
-    title: "Stats",
-    description: "Costs, kilometres, visited places and trip pace.",
-    metric: "18.6 km planned",
-    icon: BarChart3,
-  },
+];
+
+const imports = [
+  { title: "QF 937 BNE → PER", type: "Flight", status: "Added to transport", icon: Plane },
+  { title: "Airbnb Trastevere Terrace", type: "Accommodation", status: "Check-in added", icon: Hotel },
+  { title: "Lorde ticket in Pula", type: "Activity", status: "Event created", icon: CalendarDays },
+  { title: "Kompas Pula → Venice", type: "Ferry", status: "Transport added", icon: Train },
+];
+
+const savedPlaces = [
+  { title: "Roscioli", category: "Restaurants", note: "Friday dinner area" },
+  { title: "Forno Campo de' Fiori", category: "Bakeries", note: "TikTok save" },
+  { title: "Giardino degli Aranci", category: "Views", note: "Sunset option" },
+  { title: "Mercato Testaccio", category: "Markets", note: "Lunch stop" },
+  { title: "Faro - Caffe Specialty", category: "Coffee", note: "Near hotel" },
+  { title: "Via del Governo Vecchio", category: "Shopping", note: "Independent stores" },
+];
+
+const stats = [
+  ["Estimated cost", "$4,820"],
+  ["Imported bookings", "14"],
+  ["Saved places", "38"],
+  ["Planned walking", "18.6 km"],
+];
+
+const costBalances = [
+  { name: "Hannah", total: "$426", trips: "Rome flights, Pula concert, Florence train" },
+  { name: "Mia", total: "$118", trips: "Stockholm hotel and shared taxis" },
+  { name: "Sam", total: "$0", trips: "Balanced across all trips" },
+];
+
+const friends = [
+  { name: "Hannah", trips: ["Europe summer 2026", "Japan spring notes"], access: "Can edit costs" },
+  { name: "Mia", trips: ["Europe summer 2026"], access: "Can edit itinerary" },
+  { name: "Sam", trips: ["Melbourne long weekend"], access: "View only" },
 ];
 
 export function App() {
-  const [selectedDay, setSelectedDay] = useState(1);
-  const [selectedItemId, setSelectedItemId] = useState("cafe-eustachio");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeCategories, setActiveCategories] = useState<Category[]>(
-    categories.filter((category) => !["Accommodation", "Transport", "Event"].includes(category))
-  );
-  const [dayAssignments, setDayAssignments] =
-    useState<Record<string, number>>(initialDayAssignments);
-  const [visitedIds, setVisitedIds] = useState<string[]>(["pantheon"]);
-  const [generated, setGenerated] = useState(true);
+  const [page, setPage] = useState<Page>("login");
+  const [collapsed, setCollapsed] = useState(false);
+  const [tripTab, setTripTab] = useState<TripTab>("upcoming");
+  const [tripSection, setTripSection] = useState<TripSection>("overview");
 
-  const selectedDayMeta = dayNotes.find((day) => day.day === selectedDay)!;
+  const pageTitle = useMemo(() => {
+    if (page === "dashboard") return "Dashboard";
+    if (page === "trips") return "Trips";
+    if (page === "places") return "My Places";
+    if (page === "imports") return "Imports";
+    if (page === "costs") return "Cost tracking";
+    if (page === "invite") return "Invite";
+    if (page === "settings") return "Settings";
+    return "";
+  }, [page]);
 
-  const mapItems = useMemo<MapItem[]>(() => {
-    const stayItems = accommodations.map((stay) => ({
-      id: stay.id,
-      title: stay.title,
-      category: "Accommodation" as Category,
-      area: stay.area,
-      note: stay.note,
-      x: stay.x,
-      y: stay.y,
-      kind: "stay" as const,
-    }));
-    const eventItems = fixedEvents.map((event) => ({
-      id: event.id,
-      title: event.title,
-      category: event.category,
-      area: event.area,
-      note: event.note,
-      x: event.x,
-      y: event.y,
-      kind: "fixed" as const,
-      day: event.day,
-      time: event.time,
-    }));
-    const placeItems = savedPlaces.map((place) => ({
-      id: place.id,
-      title: place.name,
-      category: place.category,
-      area: place.area,
-      note: place.note,
-      x: place.x,
-      y: place.y,
-      kind: "place" as const,
-      day: dayAssignments[place.id],
-    }));
-
-    return [...stayItems, ...eventItems, ...placeItems];
-  }, [dayAssignments]);
-
-  const visibleMapItems = useMemo(
-    () =>
-      mapItems.filter((item) => {
-        const isAlwaysVisible = item.kind === "stay";
-        const matchesDay = isAlwaysVisible || !item.day || item.day === selectedDay;
-        const matchesCategory =
-          item.kind !== "place" || activeCategories.includes(item.category);
-        return matchesDay && matchesCategory;
-      }),
-    [activeCategories, mapItems, selectedDay]
-  );
-
-  const filteredSavedPlaces = useMemo(() => {
-    const query = searchTerm.toLowerCase();
-    return savedPlaces.filter((place) => {
-      const matchesSearch =
-        query.length === 0 ||
-        [place.name, place.category, place.area, place.note, place.source]
-          .join(" ")
-          .toLowerCase()
-          .includes(query);
-      return matchesSearch && activeCategories.includes(place.category);
-    });
-  }, [activeCategories, searchTerm]);
-
-  const timelineItems = useMemo(() => {
-    const fixed = fixedEvents
-      .filter((event) => event.day === selectedDay)
-      .map((event) => ({
-        id: event.id,
-        title: event.title,
-        category: event.category,
-        area: event.area,
-        note: event.note,
-        time: event.time,
-        kind: "Fixed" as const,
-      }));
-    const planned = savedPlaces
-      .filter((place) => dayAssignments[place.id] === selectedDay)
-      .map((place, index) => ({
-        id: place.id,
-        title: place.name,
-        category: place.category,
-        area: place.area,
-        note: place.note,
-        time: index === 0 ? "10:30" : index === 1 ? "12:00" : index === 2 ? "15:30" : "17:00",
-        kind: "Flexible" as const,
-      }));
-
-    return [...fixed, ...planned].sort((a, b) => a.time.localeCompare(b.time));
-  }, [dayAssignments, selectedDay]);
-
-  const selectedItem = mapItems.find((item) => item.id === selectedItemId) ?? mapItems[0];
-  const plannedCount = Object.keys(dayAssignments).length;
-  const visitedCount = visitedIds.length;
-
-  function assignPlaceToDay(placeId: string, day: number) {
-    setDayAssignments((current) => ({ ...current, [placeId]: day }));
-    setSelectedDay(day);
-    setSelectedItemId(placeId);
-    setGenerated(false);
-  }
-
-  function removePlaceFromDay(placeId: string) {
-    setDayAssignments((current) => {
-      const next = { ...current };
-      delete next[placeId];
-      return next;
-    });
-    setGenerated(false);
-  }
-
-  function toggleVisited(placeId: string) {
-    setVisitedIds((current) =>
-      current.includes(placeId)
-        ? current.filter((id) => id !== placeId)
-        : [...current, placeId]
-    );
-  }
-
-  function toggleCategory(category: Category) {
-    if (["Accommodation", "Transport", "Event"].includes(category)) return;
-    setActiveCategories((current) =>
-      current.includes(category)
-        ? current.filter((item) => item !== category)
-        : [...current, category]
+  if (page === "login") {
+    return (
+      <main className="login-page">
+        <div className="gradient-band" />
+        <nav className="login-nav">
+          <img src={mysaLogo} alt="Mysa" className="logo-mark" />
+          <span>Plan beautiful trips</span>
+        </nav>
+        <section className="login-hero">
+          <div>
+            <p className="eyebrow">AI planning for your real trip</p>
+            <h1>
+              From scattered plans to <em>beautiful days</em>
+            </h1>
+          </div>
+          <aside className="login-panel">
+            <p>
+              Forward bookings, import saved Google places and let AI shape a
+              realistic itinerary around what is already planned.
+            </p>
+            <div className="fake-form" aria-label="Login form">
+              <label>
+                Username
+                <input value="jarelle@example.com" readOnly />
+              </label>
+              <label>
+                Password
+                <input value="mysa-demo" type="password" readOnly />
+              </label>
+              <button className="pill-button orange" onClick={() => setPage("dashboard")}>
+                Log in
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </aside>
+        </section>
+      </main>
     );
   }
 
   return (
-    <main className="app-shell">
-      <aside className="rail" aria-label="Workspace navigation">
+    <main className={collapsed ? "app-shell nav-collapsed" : "app-shell"}>
+      <aside className="side-nav">
+        <button className="collapse-button" onClick={() => setCollapsed((value) => !value)}>
+          {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
+        </button>
         <div className="brand">
-          <span className="brand-mark">
-            <Sparkles size={19} />
-          </span>
-          <div>
-            <strong>Travel Companion</strong>
-            <span>A softer way to plan</span>
-          </div>
+          <img src={mysaLogo} alt="Mysa" className="brand-logo" />
         </div>
-
-        <nav className="nav-list">
-          {navItems.map((item, index) => {
+        <nav>
+          {navItems.map((item) => {
             const Icon = item.icon;
             return (
-              <button key={item.label} className={index === 1 ? "is-active" : ""}>
-                <Icon size={17} />
-                {item.label}
+              <button
+                key={item.page}
+                className={page === item.page ? "active" : ""}
+                onClick={() => setPage(item.page)}
+                title={item.label}
+              >
+                <Icon size={18} />
+                {!collapsed && <span>{item.label}</span>}
               </button>
             );
           })}
         </nav>
-
-        <div className="trip-card">
-          <span>Logged in as</span>
-          <strong>Jarelle</strong>
-          <p>3 trips · 2 collaborators · email import on</p>
-        </div>
+        <button className="logout-button" onClick={() => setPage("login")} title="Log out">
+          <ArrowRight size={18} />
+          {!collapsed && <span>Log out</span>}
+        </button>
       </aside>
 
-      <section className="workspace">
-        <header className="topbar">
+      <section className="main-content">
+        <header className="app-header">
           <div>
-            <span className="eyebrow">Your trips, gathered gently</span>
-            <h1>Forward the booking, save the bakery, invite the friend, then let the day take shape.</h1>
-            <p>
-              A calm TripIt-like home for bookings, collaborators, saved Google
-              places, costs and AI planning, without making you enter the same
-              trip twice.
-            </p>
+            {page !== "dashboard" && (
+              <button className="back-button" onClick={() => setPage("dashboard")}>
+                <ChevronLeft size={15} />
+                Back to dashboard
+              </button>
+            )}
+            <p className="eyebrow">{pageTitle}</p>
+            <h1>{page === "dashboard" ? "Your next trip is ready." : pageTitle}</h1>
           </div>
-          <div className="mood-card" aria-label="Trip mood">
-            <span>Trip mood</span>
-            <strong>Shared notes, cute bakeries, easy days, no duplicate admin</strong>
-          </div>
-          <button className="primary-action" onClick={() => setGenerated(true)}>
-            {generated ? <Check size={18} /> : <Wand2 size={18} />}
-            {generated ? "Workspace refreshed" : "Create the plan"}
+          <button className="pill-button">
+            <Plus size={17} />
+            Add new
           </button>
         </header>
 
-        <section className="summary-grid" aria-label="Trip summary">
-          <article>
-            <span>Upcoming trips</span>
-            <strong>{trips.filter((trip) => trip.status === "upcoming").length}</strong>
-            <p>Create a new trip or jump back into one already underway.</p>
-          </article>
-          <article>
-            <span>Email imports</span>
-            <strong>{inboxItems.length}</strong>
-            <p>Forwarded bookings become transport, stays and events.</p>
-          </article>
-          <article>
-            <span>Saved places</span>
-            <strong>{savedPlaces.length}</strong>
-            <p>Google categories become a personal place library.</p>
-          </article>
-          <article>
-            <span>Costs tracked</span>
-            <strong>$1.8k</strong>
-            <p>Shared expenses live beside the itinerary.</p>
-          </article>
-        </section>
-
-        <section className="hub-grid" aria-label="Trip dashboard">
-          <div className="hub-panel">
-            <div className="panel-heading">
-              <div>
-                <span>Dashboard</span>
-                <h2>Create a trip or return to one already in motion.</h2>
-              </div>
-              <button className="secondary-action">
-                <Plus size={17} />
-                New trip
-              </button>
-            </div>
-            <div className="trip-list">
-              {trips.map((trip) => (
-                <article key={trip.id} className="trip-row">
-                  <div>
-                    <span>{trip.status === "upcoming" ? "Upcoming" : "Past"}</span>
-                    <strong>{trip.title}</strong>
-                    <p>{trip.dates} · {trip.summary}</p>
-                  </div>
-                  <Archive size={17} />
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <aside className="hub-panel compact-hub">
-            <div className="panel-heading compact">
-              <div>
-                <span>Collaborators</span>
-                <h2>Plan with the people coming along.</h2>
-              </div>
-            </div>
-            <div className="collab-list">
-              {collaborators.map((person) => (
-                <article key={person.name}>
-                  <div className="avatar">{person.name.slice(0, 1)}</div>
-                  <div>
-                    <strong>{person.name}</strong>
-                    <p>{person.role} · {person.status}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </aside>
-
-          <aside className="hub-panel compact-hub">
-            <div className="panel-heading compact">
-              <div>
-                <span>Email inbox</span>
-                <h2>Forward bookings and let the app file them.</h2>
-              </div>
-            </div>
-            <div className="inbox-list">
-              {inboxItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <article key={item.id}>
-                    <Icon size={17} />
-                    <div>
-                      <strong>{item.title}</strong>
-                      <p>{item.source} · {item.status}</p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </aside>
-        </section>
-
-        <section className="planner-grid">
-          <div className="map-panel">
-            <div className="panel-heading">
-              <div>
-                <span>Interactive map</span>
-                <h2>A quiet map of what matters today.</h2>
-              </div>
-              <div className="day-switcher" aria-label="Select trip day">
-                {dayNotes.map((day) => (
-                  <button
-                    key={day.day}
-                    className={selectedDay === day.day ? "is-selected" : ""}
-                    onClick={() => setSelectedDay(day.day)}
-                  >
-                    Day {day.day}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="map-canvas" aria-label="Rome planning map">
-              <div className="river" />
-              <div className="street street-a" />
-              <div className="street street-b" />
-              <div className="street street-c" />
-              <svg className="route-line" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <polyline
-                  points={visibleMapItems
-                    .filter((item) => item.kind !== "stay")
-                    .map((item) => `${item.x},${item.y}`)
-                    .join(" ")}
-                />
-              </svg>
-              {visibleMapItems.map((item) => {
-                const Icon = categoryMeta[item.category].icon;
-                return (
-                  <button
-                    key={item.id}
-                    className={[
-                      "map-pin",
-                      item.kind,
-                      selectedItem.id === item.id ? "is-selected" : "",
-                    ].join(" ")}
-                    style={
-                      {
-                        left: `${item.x}%`,
-                        top: `${item.y}%`,
-                        "--pin-color": categoryMeta[item.category].color,
-                      } as React.CSSProperties
-                    }
-                    onClick={() => setSelectedItemId(item.id)}
-                    title={`${item.title} - ${item.note}`}
-                  >
-                    <Icon size={16} />
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="selected-detail">
-              <div
-                className="detail-icon"
-                style={{ backgroundColor: categoryMeta[selectedItem.category].color }}
-              >
-                {(() => {
-                  const Icon = categoryMeta[selectedItem.category].icon;
-                  return <Icon size={18} />;
-                })()}
-              </div>
-              <div>
-                <span>{selectedItem.kind === "fixed" ? "Fixed commitment" : selectedItem.category}</span>
-                <strong>{selectedItem.title}</strong>
-                <p>{selectedItem.area} · {selectedItem.note}</p>
-              </div>
-            </div>
-          </div>
-
-          <aside className="timeline-panel" aria-label="Daily itinerary">
-            <div className="panel-heading compact">
-              <div>
-                <span>Daily itinerary</span>
-                <h2>{selectedDayMeta.title}</h2>
-              </div>
-            </div>
-
-            <div className="day-stats">
-              <span>{selectedDayMeta.freeTime} free</span>
-              <span>{selectedDayMeta.walking} walking</span>
-              <span>{selectedDayMeta.transport}</span>
-            </div>
-
-            <div className="timeline-list">
-              {timelineItems.map((item) => {
-                const Icon = categoryMeta[item.category].icon;
-                const isVisited = visitedIds.includes(item.id);
-                return (
-                  <article
-                    key={item.id}
-                    className={[
-                      "timeline-item",
-                      selectedItem.id === item.id ? "is-selected" : "",
-                    ].join(" ")}
-                    onClick={() => setSelectedItemId(item.id)}
-                  >
-                    <time>{item.time}</time>
-                    <div
-                      className="timeline-icon"
-                      style={{ backgroundColor: categoryMeta[item.category].color }}
-                    >
-                      <Icon size={15} />
-                    </div>
-                    <div>
-                      <span>{item.kind}</span>
-                      <strong>{item.title}</strong>
-                      <p>{item.area} · {item.note}</p>
-                      {item.kind === "Flexible" && (
-                        <button
-                          className={isVisited ? "mini-action is-done" : "mini-action"}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toggleVisited(item.id);
-                          }}
-                        >
-                          {isVisited ? "Visited" : "Mark visited"}
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </aside>
-        </section>
-
-        <section className="module-grid" aria-label="Trip modules">
-          {modules.map((module) => {
-            const Icon = module.icon;
-            return (
-              <article key={module.title} className="module-card">
-                <Icon size={19} />
-                <span>{module.metric}</span>
-                <strong>{module.title}</strong>
-                <p>{module.description}</p>
-              </article>
-            );
-          })}
-        </section>
-
-        <section className="lower-grid">
-          <div className="library-panel">
-            <div className="panel-heading">
-              <div>
-                <span>Saved places library</span>
-                <h2>Look up any place, import saved lists, then choose what belongs on this trip.</h2>
-              </div>
-              <button className="secondary-action">
-                <Import size={17} />
-                Import Google
-              </button>
-            </div>
-
-            <div className="search-row">
-              <label>
-                <Search size={16} />
-                <input
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search bakeries, markets, saved lists..."
-                />
-              </label>
-            </div>
-
-            <div className="filter-list">
-              {categories
-                .filter((category) => !["Accommodation", "Transport", "Event"].includes(category))
-                .map((category) => {
-                  const Icon = categoryMeta[category].icon;
-                  const isActive = activeCategories.includes(category);
-                  return (
-                    <button
-                      key={category}
-                      className={isActive ? "filter-chip is-active" : "filter-chip"}
-                      onClick={() => toggleCategory(category)}
-                      style={{ "--chip-color": categoryMeta[category].color } as React.CSSProperties}
-                    >
-                      <Icon size={15} />
-                      {category}
-                    </button>
-                  );
-                })}
-            </div>
-
-            <div className="place-list">
-              {filteredSavedPlaces.map((place) => {
-                const Icon = categoryMeta[place.category].icon;
-                const assignedDay = dayAssignments[place.id];
-                const isVisited = visitedIds.includes(place.id);
-                return (
-                  <article key={place.id} className="place-card">
-                    <div
-                      className="place-icon"
-                      style={{ backgroundColor: categoryMeta[place.category].color }}
-                    >
-                      <Icon size={16} />
-                    </div>
-                    <div className="place-copy">
-                      <span>{place.source} · {place.category}</span>
-                      <strong>{place.name}</strong>
-                      <p>{place.area} · {place.note}</p>
-                      <div className="place-actions">
-                        {dayNotes.map((day) => (
-                          <button
-                            key={day.day}
-                            className={assignedDay === day.day ? "is-active" : ""}
-                            onClick={() => assignPlaceToDay(place.id, day.day)}
-                          >
-                            Day {day.day}
-                          </button>
-                        ))}
-                        {assignedDay && (
-                          <button onClick={() => removePlaceFromDay(place.id)}>
-                            <X size={14} />
-                          </button>
-                        )}
-                        <button
-                          className={isVisited ? "visited-toggle is-active" : "visited-toggle"}
-                          onClick={() => toggleVisited(place.id)}
-                        >
-                          <Check size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-
-          <aside className="ai-panel" aria-label="AI planner">
-            <div className="panel-heading compact">
-              <div>
-                <span>AI planner</span>
-                <h2>Create a day from everything already in the trip.</h2>
-              </div>
-            </div>
-
-            <div className="prompt-box">
-              <Sparkles size={18} />
-              <p>
-                Use my forwarded bookings, accommodation, transport, saved Google
-                places, collaborators' notes and costs. Suggest a gentle day in
-                Rome with bakeries nearby and no clashes.
-              </p>
-            </div>
-
-            <div className="ai-stack">
-              <article>
-                <span>Constraint found</span>
-                <strong>Email bookings parsed</strong>
-                <p>Flights, check-ins and tickets are filed into the right tabs.</p>
-              </article>
-              <article>
-                <span>Saved-place fit</span>
-                <strong>{plannedCount} flexible places placed</strong>
-                <p>Nearby Google saves are chosen before generic suggestions.</p>
-              </article>
-              <article>
-                <span>Shared context</span>
-                <strong>{collaborators.length} travellers included</strong>
-                <p>Costs, notes and preferences stay attached to the trip.</p>
-              </article>
-            </div>
-
-            <button className="primary-action wide" onClick={() => setGenerated(true)}>
-              <Wand2 size={18} />
-              Soften the plan
-            </button>
-          </aside>
-        </section>
+        {page === "dashboard" && (
+          <Dashboard tripTab={tripTab} setTripTab={setTripTab} setPage={setPage} />
+        )}
+        {page === "trips" && (
+          <Trips
+            tripTab={tripTab}
+            setTripTab={setTripTab}
+            tripSection={tripSection}
+            setTripSection={setTripSection}
+          />
+        )}
+        {page === "places" && <Places />}
+        {page === "imports" && <Imports />}
+        {page === "costs" && <Costs />}
+        {page === "invite" && <Invite />}
+        {page === "settings" && <SettingsPage />}
       </section>
     </main>
+  );
+}
+
+function Dashboard({
+  tripTab,
+  setTripTab,
+  setPage,
+}: {
+  tripTab: TripTab;
+  setTripTab: (tab: TripTab) => void;
+  setPage: (page: Page) => void;
+}) {
+  return (
+    <section className="dashboard-grid">
+      <div className="trip-focus">
+        <div className="tabs">
+          <button className={tripTab === "upcoming" ? "active" : ""} onClick={() => setTripTab("upcoming")}>
+            Upcoming
+          </button>
+          <button className={tripTab === "past" ? "active" : ""} onClick={() => setTripTab("past")}>
+            Past trips
+          </button>
+        </div>
+
+        {tripTab === "upcoming" ? (
+          <article className="hero-card">
+            <div className="gradient-strip" />
+            <div className="hero-card-content">
+              <p className="eyebrow">Next up</p>
+              <h2>{upcomingTrip.title}</h2>
+              <p>{upcomingTrip.dates} · {upcomingTrip.route}</p>
+              <div className="countdown-card">
+                <strong>{upcomingTrip.daysToGo}</strong>
+                <span>days to go</span>
+              </div>
+              <div className="metric-row">
+                <span>{upcomingTrip.cost}<small>estimated</small></span>
+                <span>{upcomingTrip.travellers}<small>travellers</small></span>
+                <span>{upcomingTrip.imported}<small>imports</small></span>
+                <span>{upcomingTrip.places}<small>saved places</small></span>
+              </div>
+              <button className="pill-button orange" onClick={() => setPage("trips")}>
+                View trip
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </article>
+        ) : (
+          <div className="card-stack">
+            {pastTrips.map((trip) => (
+              <article key={trip.title} className="simple-card">
+                <span>{trip.dates}</span>
+                <strong>{trip.title}</strong>
+                <p>{trip.cost} tracked · places and notes saved for next time</p>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <aside className="side-panel">
+        <h3>How this trip is being built</h3>
+        <div className="step-list">
+          {[
+            ["1", "Forward emails", "Flights, stays and tickets become itinerary items."],
+            ["2", "Import Google places", "Saved lists become a searchable place library."],
+            ["3", "Create with AI", "AI suggests days around bookings and distance."],
+          ].map(([number, title, copy]) => (
+            <article key={number}>
+              <span>{number}</span>
+              <div>
+                <strong>{title}</strong>
+                <p>{copy}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </aside>
+    </section>
+  );
+}
+
+function Trips({
+  tripTab,
+  setTripTab,
+  tripSection,
+  setTripSection,
+}: {
+  tripTab: TripTab;
+  setTripTab: (tab: TripTab) => void;
+  tripSection: TripSection;
+  setTripSection: (section: TripSection) => void;
+}) {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
+  const tripModeTabs = (
+    <div className="tabs trip-mode-tabs">
+      <button className={tripTab === "upcoming" ? "active" : ""} onClick={() => setTripTab("upcoming")}>
+        Upcoming trips
+      </button>
+      <button className={tripTab === "past" ? "active" : ""} onClick={() => setTripTab("past")}>
+        Past trips
+      </button>
+    </div>
+  );
+
+  if (!selectedTripId) {
+    const visibleTrips =
+      tripTab === "upcoming"
+        ? [
+            {
+              id: "europe-summer-2026",
+              title: upcomingTrip.title,
+              dates: upcomingTrip.dates,
+              where: "Rome, Stockholm, Ljusdal, Pula, Venice and Florence",
+              cost: upcomingTrip.cost,
+              meta: `${upcomingTrip.daysToGo} days to go · ${upcomingTrip.places} saved places`,
+            },
+          ]
+        : [...pastTrips, { title: "Noosa girls weekend", dates: "Feb 2024", cost: "$1,120" }].map(
+            (trip) => ({
+              id: trip.title.toLowerCase().replaceAll(" ", "-"),
+              title: trip.title,
+              dates: trip.dates,
+              where: "Places, notes and costs saved for next time",
+              cost: trip.cost,
+              meta: "Past trip",
+            })
+          );
+
+    return (
+      <>
+        {tripModeTabs}
+        <section className="panel large">
+          <div className="trip-card-list">
+            {visibleTrips.map((trip) => (
+              <article key={trip.id} className="trip-overview-card">
+                <div>
+                  <span>{trip.dates}</span>
+                  <strong>{trip.title}</strong>
+                  <p>{trip.where}</p>
+                </div>
+                <div className="trip-card-meta">
+                  <strong>{trip.cost}</strong>
+                  <span>{trip.meta}</span>
+                  <button className="pill-button orange" onClick={() => setSelectedTripId(trip.id)}>
+                    View trip
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <section className="two-column trip-page">
+        <div className={tripSection === "stats" ? "panel large compact-fit" : "panel large"}>
+          <button className="back-button trip-back-button" onClick={() => setSelectedTripId(null)}>
+            <ChevronLeft size={15} />
+            Back to trips
+          </button>
+          <div className="trip-tab-bar">
+            <div className="tabs trip-tabs">
+              <button
+                className={tripSection === "overview" ? "active" : ""}
+                onClick={() => setTripSection("overview")}
+              >
+                Overview
+              </button>
+              <button
+                className={tripSection === "create" ? "active" : ""}
+                onClick={() => setTripSection("create")}
+              >
+                Create
+              </button>
+              <button
+                className={tripSection === "stats" ? "active" : ""}
+                onClick={() => setTripSection("stats")}
+              >
+                Stats
+              </button>
+            </div>
+            <button className="pill-button orange add-event-button" onClick={() => setIsAddModalOpen(true)}>
+              <Plus size={16} />
+              Add
+            </button>
+          </div>
+          {tripSection === "overview" && <TripOverview />}
+          {tripSection === "create" && <Create />}
+          {tripSection === "stats" && <Stats />}
+        </div>
+        <MapPreview />
+      </section>
+      {isAddModalOpen && <AddEventModal onClose={() => setIsAddModalOpen(false)} />}
+    </>
+  );
+}
+
+function AddEventModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="add-event-title">
+        <button className="modal-close" onClick={onClose} aria-label="Close add event modal">
+          <X size={18} />
+        </button>
+        <span className="eyebrow">Custom itinerary event</span>
+        <h2 id="add-event-title">Add something only you know about.</h2>
+        <p>
+          Add a dinner, visit, appointment or personal note. Mysa places it into the
+          right day based on the date and time.
+        </p>
+        <div className="event-form">
+          <label>
+            Event name
+            <input value="Visit Sarah for dinner" readOnly />
+          </label>
+          <label>
+            Address
+            <input value="123 Street Name, Trastevere" readOnly />
+          </label>
+          <div className="form-grid">
+            <label>
+              Date
+              <input value="Aug 10" readOnly />
+            </label>
+            <label>
+              Time
+              <input value="20:00" readOnly />
+            </label>
+          </div>
+        </div>
+        <div className="modal-preview">
+          <span>Will appear under</span>
+          <strong>Rome · Day 2 · Mon 10 Aug · 20:00</strong>
+        </div>
+        <button className="pill-button orange" onClick={onClose}>
+          Add to itinerary
+          <ArrowRight size={16} />
+        </button>
+      </section>
+    </div>
+  );
+}
+
+function TripOverview() {
+  const [selectedLegId, setSelectedLegId] = useState(tripLegs[0].id);
+  const selectedLeg = tripLegs.find((leg) => leg.id === selectedLegId) ?? tripLegs[0];
+  const [selectedDayId, setSelectedDayId] = useState(selectedLeg.days[0].id);
+  const selectedDay =
+    selectedLeg.days.find((day) => day.id === selectedDayId) ?? selectedLeg.days[0];
+
+  function selectLeg(legId: string) {
+    const nextLeg = tripLegs.find((leg) => leg.id === legId) ?? tripLegs[0];
+    setSelectedLegId(nextLeg.id);
+    setSelectedDayId(nextLeg.days[0].id);
+  }
+
+  return (
+    <>
+      <h2>Europe summer 2026</h2>
+      <p className="lede">
+        Long trips are grouped by leg first, then by day, so six weeks of bookings,
+        places and AI suggestions stay manageable.
+      </p>
+      <div className="leg-selector" aria-label="Trip legs">
+        {tripLegs.map((leg) => (
+          <button
+            key={leg.id}
+            className={selectedLeg.id === leg.id ? "active" : ""}
+            onClick={() => selectLeg(leg.id)}
+          >
+            <strong>{leg.label}</strong>
+            <span>{leg.dates} · {leg.base}</span>
+          </button>
+        ))}
+      </div>
+      <div className="day-strip" aria-label={`${selectedLeg.label} days`}>
+        {selectedLeg.days.map((day) => (
+          <button
+            key={day.id}
+            className={selectedDay.id === day.id ? "active" : ""}
+            onClick={() => setSelectedDayId(day.id)}
+          >
+            <span>{day.label}</span>
+            <strong>{day.date}</strong>
+          </button>
+        ))}
+      </div>
+      <article className="day-summary">
+        <div>
+          <span>{selectedLeg.label}</span>
+          <h3>{selectedDay.title}</h3>
+          <p>{selectedDay.summary}</p>
+        </div>
+        <strong>{selectedDay.distance}<small>planned walking</small></strong>
+      </article>
+      <div className="timeline">
+        {selectedDay.items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <article key={item.label}>
+              <time>{item.time}</time>
+              <Icon size={18} />
+              <div>
+                <strong>{item.label}</strong>
+                <p>{item.detail}</p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function Places() {
+  return (
+    <section className="two-column">
+      <div className="panel large">
+        <div className="toolbar">
+          <label>
+            <Search size={16} />
+            <input value="Bakeries near Trastevere" readOnly />
+          </label>
+          <button className="pill-button">Import Google</button>
+        </div>
+        <div className="place-grid">
+          {savedPlaces.map((place) => (
+            <article key={place.title}>
+              <span>{place.category}</span>
+              <strong>{place.title}</strong>
+              <p>{place.note}</p>
+              <button>Add to day</button>
+            </article>
+          ))}
+        </div>
+      </div>
+      <MapPreview />
+    </section>
+  );
+}
+
+function Imports() {
+  return (
+    <section className="panel large">
+      <div className="mail-drop">
+        <Mail size={22} />
+        <div>
+          <h2>Forward travel emails to your trip inbox.</h2>
+          <p>Flights, hotels, trains, tickets and restaurant bookings are parsed into the right pages.</p>
+        </div>
+      </div>
+      <div className="import-list">
+        {imports.map((item) => {
+          const Icon = item.icon;
+          return (
+            <article key={item.title}>
+              <Icon size={18} />
+              <div>
+                <span>{item.type}</span>
+                <strong>{item.title}</strong>
+                <p>{item.status}</p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function Create() {
+  return (
+    <section className="trip-section">
+      <div className="ai-page">
+        <Sparkles size={24} />
+        <h2>Suggest a gentle day in Rome.</h2>
+        <p>
+          Use my accommodation, forwarded bookings, Google saved bakeries,
+          restaurants and viewpoints. Keep walking reasonable and avoid clashes.
+        </p>
+        <button className="pill-button orange">
+          Generate itinerary
+          <ArrowRight size={16} />
+        </button>
+      </div>
+      <div className="inline-panel">
+        <h3>AI will consider</h3>
+        <ul>
+          <li>Fixed flights, check-ins and tickets</li>
+          <li>Saved Google Maps categories</li>
+          <li>Walking distance and location clusters</li>
+          <li>Collaborator notes and preferences</li>
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function Costs() {
+  return (
+    <section className="panel large">
+      <p className="lede">
+        General tallies across all trips, with every expense assigned to a trip
+        and split with friends.
+      </p>
+      <div className="balance-list">
+        {costBalances.map((balance) => (
+          <article key={balance.name}>
+            <div>
+              <span>Owes you</span>
+              <strong>{balance.name}</strong>
+              <p>{balance.trips}</p>
+            </div>
+            <div className="balance-total">
+              <strong>{balance.total}</strong>
+              <button>Balance</button>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="cost-entry">
+        <h3>Add expense</h3>
+        <p>Flights to Rome · $2,120 · split with Hannah · assigned to Europe summer 2026</p>
+      </div>
+    </section>
+  );
+}
+
+function Stats() {
+  return (
+    <section className="stats-grid">
+      {stats.map(([label, value]) => (
+        <article key={label}>
+          <span>{label}</span>
+          <strong>{value}</strong>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function Invite() {
+  return (
+    <section className="panel large">
+      <div className="toolbar invite-toolbar">
+        <button className="pill-button orange">
+          <Plus size={16} />
+          Add friend
+        </button>
+        <button className="pill-button">Assign to trip</button>
+      </div>
+      <div className="friend-list">
+        {friends.map((friend) => (
+          <article key={friend.name}>
+            <div>
+              <span>{friend.access}</span>
+              <strong>{friend.name}</strong>
+              <p>{friend.trips.join(" · ")}</p>
+            </div>
+            <button title={`Remove ${friend.name}`}>
+              <X size={16} />
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SettingsPage() {
+  return (
+    <section className="panel large">
+      <h2>Settings</h2>
+      <p className="lede">
+        Profile, connected Google account, forwarded email address and notification preferences.
+      </p>
+      <div className="settings-list">
+        <article>
+          <strong>Google Maps</strong>
+          <p>Saved places connected · Bakeries, Restaurants, Views, Markets.</p>
+        </article>
+        <article>
+          <strong>Email forwarding</strong>
+          <p>forward@mysa.example · bookings are sorted into trips automatically.</p>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function MapPreview() {
+  return (
+    <aside className="panel map-panel">
+      <div className="map-preview">
+        <Map size={22} />
+        <span className="pin one" />
+        <span className="pin two" />
+        <span className="pin three" />
+      </div>
+      <h3>Map-first planning</h3>
+      <p>Saved places, bookings and daily routes stay connected visually.</p>
+    </aside>
   );
 }
