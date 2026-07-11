@@ -488,12 +488,12 @@ const imports = [
 ];
 
 const savedPlaces = [
-  { title: "Roscioli", category: "Restaurants", note: "Friday dinner area" },
-  { title: "Forno Campo de' Fiori", category: "Bakeries", note: "TikTok save" },
-  { title: "Giardino degli Aranci", category: "Views", note: "Sunset option" },
-  { title: "Mercato Testaccio", category: "Markets", note: "Lunch stop" },
-  { title: "Faro - Caffe Specialty", category: "Coffee", note: "Near hotel" },
-  { title: "Via del Governo Vecchio", category: "Shopping", note: "Independent stores" },
+  { title: "Roscioli", category: "Restaurants", note: "Imported from Google Maps saved places", added: true },
+  { title: "Forno Campo de' Fiori", category: "Bakeries", note: "Added from Google Places search", added: true },
+  { title: "Giardino degli Aranci", category: "Views", note: "Imported from a saved places file", added: true },
+  { title: "Mercato Testaccio", category: "Markets", note: "Suggested from Google Places search", added: false },
+  { title: "Faro - Caffe Specialty", category: "Coffee", note: "Suggested from Google Places search", added: false },
+  { title: "Via del Governo Vecchio", category: "Shopping", note: "Imported from Google Maps saved places", added: true },
 ];
 
 const stats = [
@@ -861,6 +861,10 @@ function Trips({
 }
 
 function AddEventModal({ onClose }: { onClose: () => void }) {
+  const [addMode, setAddMode] = useState<"custom" | "library">("custom");
+  const libraryPlaces = savedPlaces.filter((place) => place.added);
+  const [selectedPlace, setSelectedPlace] = useState(libraryPlaces[0]);
+
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <section
@@ -873,38 +877,92 @@ function AddEventModal({ onClose }: { onClose: () => void }) {
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close add event modal">
           <X size={18} />
         </button>
-        <span className="eyebrow">Custom itinerary event</span>
-        <h2 id="add-event-title">Add something only you know about.</h2>
+        <span className="eyebrow">Add to itinerary</span>
+        <h2 id="add-event-title">Add anything to this trip.</h2>
         <p>
-          Add a dinner, visit, appointment or personal note. Mysa places it into the
-          right day based on the date and time.
+          Add a custom plan, booking, note or a place from your library. Mysa places it
+          into the right day based on the date, time and location.
         </p>
-        <div className="event-form">
-          <label>
-            Event name
-            <input value="Visit Sarah for dinner" readOnly />
-          </label>
-          <label>
-            Address
-            <input value="123 Street Name, Trastevere" readOnly />
-          </label>
-          <div className="form-grid">
-            <label>
-              Date
-              <input value="Aug 10" readOnly />
-            </label>
-            <label>
-              Time
-              <input value="20:00" readOnly />
-            </label>
-          </div>
+        <div className="add-source-options" aria-label="Add source">
+          <button
+            className={addMode === "custom" ? "active" : ""}
+            type="button"
+            onClick={() => setAddMode("custom")}
+          >
+            Custom item
+          </button>
+          <button
+            className={addMode === "library" ? "active" : ""}
+            type="button"
+            onClick={() => setAddMode("library")}
+          >
+            From places library
+          </button>
         </div>
+
+        {addMode === "custom" ? (
+          <div className="event-form">
+            <label>
+              Name
+              <input value="Visit Sarah for dinner" readOnly />
+            </label>
+            <label>
+              Address or note
+              <input value="123 Street Name, Trastevere" readOnly />
+            </label>
+            <div className="form-grid">
+              <label>
+                Date
+                <input value="Aug 10" readOnly />
+              </label>
+              <label>
+                Time
+                <input value="20:00" readOnly />
+              </label>
+            </div>
+          </div>
+        ) : (
+          <div className="library-picker">
+            <label>
+              Search your places
+              <input value="Restaurants, bakeries or views near Rome" readOnly />
+            </label>
+            <div className="library-place-list">
+              {libraryPlaces.map((place) => (
+                <button
+                  key={place.title}
+                  className={selectedPlace.title === place.title ? "active" : ""}
+                  type="button"
+                  onClick={() => setSelectedPlace(place)}
+                >
+                  <span>{place.category}</span>
+                  <strong>{place.title}</strong>
+                  <small>{place.note}</small>
+                </button>
+              ))}
+            </div>
+            <div className="form-grid">
+              <label>
+                Add to date
+                <input value="Aug 10" readOnly />
+              </label>
+              <label>
+                Preferred time
+                <input value="15:30" readOnly />
+              </label>
+            </div>
+          </div>
+        )}
         <div className="modal-preview">
           <span>Will appear under</span>
-          <strong>Rome · Day 2 · Mon 10 Aug · 20:00</strong>
+          <strong>
+            {addMode === "library"
+              ? `Rome · Day 2 · ${selectedPlace.title} · from places library`
+              : "Rome · Day 2 · Mon 10 Aug · 20:00 · custom item"}
+          </strong>
         </div>
         <button className="pill-button orange" onClick={onClose}>
-          Add to itinerary
+          Add to trip
           <ArrowRight size={16} />
         </button>
       </section>
@@ -1121,27 +1179,34 @@ function ItineraryItemModal({
 
 function Places() {
   return (
-    <section className="two-column">
-      <div className="panel large">
+    <section className="panel large">
+        <p className="lede places-lede">
+          Your account-wide Google places library. Import saved places from a file
+          or add new places from search, then use them across trips and AI planning.
+        </p>
         <div className="toolbar">
           <label>
             <Search size={16} />
-            <input value="Bakeries near Trastevere" readOnly />
+            <input value="Search Google Places or your library" readOnly />
           </label>
-          <button className="pill-button">Import Google</button>
+          <button className="pill-button">Import file</button>
+          <button className="pill-button orange">Search Google</button>
         </div>
         <div className="place-grid">
           {savedPlaces.map((place) => (
             <article key={place.title}>
-              <span>{place.category}</span>
+              <span>{place.category} · {place.added ? "In library" : "Search result"}</span>
               <strong>{place.title}</strong>
               <p>{place.note}</p>
-              <button>Add to day</button>
+              <div className="place-actions">
+                <button className={place.added ? "added" : ""}>
+                  {place.added ? "Added" : "Add +"}
+                </button>
+                {place.added && <button>Remove</button>}
+              </div>
             </article>
           ))}
         </div>
-      </div>
-      <MapPreview />
     </section>
   );
 }

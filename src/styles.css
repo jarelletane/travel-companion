@@ -42,6 +42,13 @@ input {
 
 button {
   cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
 }
 
 .login-page {
@@ -198,6 +205,18 @@ em {
   background: var(--orange);
 }
 
+.pill-button:hover {
+  border-color: rgba(17, 16, 14, 0.22);
+  background: var(--soft);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(25, 20, 17, 0.08);
+}
+
+.pill-button.orange:hover {
+  background: #e73510;
+  box-shadow: 0 12px 28px rgba(255, 61, 18, 0.22);
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 232px minmax(0, 1fr);
@@ -292,6 +311,12 @@ em {
   color: var(--muted);
   background: #ffffff;
   font-weight: 800;
+}
+
+.logout-button:hover,
+.back-button:hover {
+  color: var(--ink);
+  background: var(--soft);
 }
 
 .nav-collapsed .side-nav {
@@ -414,6 +439,14 @@ em {
   background: var(--ink);
 }
 
+.tabs button:not(.active):hover,
+.add-source-options button:not(.active):hover,
+.map-layer-tabs button:not(.active):hover {
+  color: var(--ink);
+  background: #ffffff;
+  border-color: rgba(17, 16, 14, 0.18);
+}
+
 .hero-card {
   overflow: hidden;
 }
@@ -453,7 +486,7 @@ em {
 .hero-card h2,
 .panel.large h2 {
   max-width: 680px;
-  font-size: clamp(2rem, 3.8vw, 4.2rem);
+  font-size: clamp(1.5rem, 3.8vw, 4.2rem);
   line-height: 1;
 }
 
@@ -492,6 +525,10 @@ em {
 .mail-drop p {
   color: var(--muted);
   line-height: 1.5;
+}
+
+.places-lede {
+  margin-bottom: 28px;
 }
 
 .leg-selector {
@@ -736,6 +773,15 @@ em {
   font-weight: 850;
 }
 
+.notification-list button:hover,
+.place-grid button:hover,
+.balance-total button:hover,
+.friend-list button:hover {
+  border-color: rgba(17, 16, 14, 0.2);
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
 .simple-card {
   padding: 18px;
 }
@@ -784,7 +830,7 @@ em {
   display: block;
   margin: 8px 0 8px;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 4vw, 3.8rem);
+  font-size: clamp(0.6rem, 3.5vw, 3.8rem);
   font-weight: 500;
   line-height: 1;
 }
@@ -883,13 +929,8 @@ em {
   overflow: hidden;
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(255, 61, 18, 0.18), rgba(200, 145, 241, 0.22)),
-    linear-gradient(26deg, transparent 0 42%, rgba(255, 255, 255, 0.7) 43% 45%, transparent 46%),
-    linear-gradient(112deg, transparent 0 48%, rgba(255, 255, 255, 0.7) 49% 51%, transparent 52%),
-    linear-gradient(90deg, rgba(17, 16, 14, 0.08) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(17, 16, 14, 0.08) 1px, transparent 1px),
-    #eeeeeb;
-  background-size: auto, auto, auto, 56px 56px, 56px 56px, auto;
+    linear-gradient(135deg, rgba(255, 61, 18, 0.2), rgba(200, 145, 241, 0.24)),
+    url("./assets/rome-map.png") center / cover;
 }
 
 .map-preview::before,
@@ -903,19 +944,11 @@ em {
 }
 
 .map-preview::before {
-  width: 72%;
-  height: 12px;
-  left: 12%;
-  top: 34%;
-  rotate: -12deg;
+  display: none;
 }
 
 .map-preview::after {
-  width: 60%;
-  height: 10px;
-  left: 25%;
-  top: 65%;
-  rotate: 18deg;
+  display: none;
 }
 
 .pin {
@@ -1021,14 +1054,8 @@ em {
   border: 1px solid var(--line);
   border-radius: 22px;
   background:
-    linear-gradient(135deg, rgba(255, 61, 18, 0.16), rgba(200, 145, 241, 0.24)),
-    linear-gradient(24deg, transparent 0 34%, rgba(255, 255, 255, 0.78) 35% 36%, transparent 37%),
-    linear-gradient(108deg, transparent 0 43%, rgba(255, 255, 255, 0.7) 44% 45%, transparent 46%),
-    linear-gradient(152deg, transparent 0 56%, rgba(255, 255, 255, 0.62) 57% 58%, transparent 59%),
-    linear-gradient(90deg, rgba(17, 16, 14, 0.07) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(17, 16, 14, 0.07) 1px, transparent 1px),
-    #eeeeeb;
-  background-size: auto, auto, auto, auto, 72px 72px, 72px 72px, auto;
+    linear-gradient(135deg, rgba(255, 61, 18, 0.18), rgba(200, 145, 241, 0.26)),
+    url("./assets/rome-map.png") center / cover;
   box-shadow: 0 24px 80px rgba(25, 20, 17, 0.08);
 }
 
@@ -1169,14 +1196,29 @@ em {
   padding: 22px;
 }
 
+.place-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
 .place-grid button {
   min-height: 30px;
-  margin-top: 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 0 12px;
   background: var(--paper);
   font-weight: 800;
+}
+
+.place-grid button.added {
+  color: #ffffff;
+  background: var(--ink);
+}
+
+.place-grid button.added:hover {
+  opacity: 0.88;
 }
 
 .mail-drop {
@@ -1383,7 +1425,7 @@ ul {
 
 .modal-card h2 {
   max-width: 480px;
-  font-size: clamp(2rem, 4vw, 3.6rem);
+  font-size: clamp(1.5rem, 4vw, 3.6rem);
   line-height: 1;
 }
 
@@ -1407,12 +1449,34 @@ ul {
   background: #ffffff;
 }
 
-.event-form {
+.event-form,
+.library-picker {
   display: grid;
   gap: 14px;
 }
 
-.event-form label {
+.add-source-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.add-source-options button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  background: var(--soft);
+  font-weight: 850;
+}
+
+.add-source-options button.active {
+  color: #ffffff;
+  background: var(--ink);
+}
+
+.event-form label,
+.library-picker label {
   display: grid;
   gap: 7px;
   color: var(--muted);
@@ -1422,7 +1486,8 @@ ul {
 }
 
 .event-form input,
-.event-form select {
+.event-form select,
+.library-picker input {
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1430,6 +1495,48 @@ ul {
   color: var(--ink);
   background: var(--soft);
   outline: 0;
+}
+
+.library-place-list {
+  display: grid;
+  gap: 10px;
+}
+
+.library-place-list button {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px 14px;
+  color: var(--ink);
+  background: var(--soft);
+  text-align: left;
+}
+
+.library-place-list button.active {
+  border-color: rgba(255, 61, 18, 0.38);
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(90deg, var(--orange), var(--lilac)) border-box;
+  border: 1px solid transparent;
+}
+
+.library-place-list button:hover {
+  border-color: rgba(255, 61, 18, 0.24);
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.library-place-list span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.library-place-list small {
+  color: var(--muted);
+  font-size: 0.86rem;
 }
 
 .event-form select:disabled {
