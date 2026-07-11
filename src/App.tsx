@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import mysaIcon from "./assets/mysa-icon.png";
 import mysaLogo from "./assets/mysa-logo.png";
 
 type Page =
@@ -40,12 +41,54 @@ const upcomingTrip = {
   title: "Europe summer 2026",
   dates: "8-24 Aug",
   route: "Brisbane → Rome → Stockholm → Pula → Venice → Florence → Rome",
-  cost: "$4,820",
+  cost: "$5,367",
   travellers: 3,
   imported: 14,
   places: 38,
   daysToGo: 28,
 };
+
+const tripCostTotals = [
+  { person: "You", total: "$2,578" },
+  { person: "Hannah", total: "$2,789" },
+];
+
+const dashboardNotifications = [
+  {
+    title: "You owe Hannah $237",
+    detail: "Flights to Rome and Pula ferry tickets are waiting to be balanced.",
+    action: "Balance",
+  },
+  {
+    title: "Accommodation gap",
+    detail: "No stay is booked for 19-20 Aug between Venice and Florence.",
+    action: "Review dates",
+  },
+  {
+    title: "Saved places ready",
+    detail: "12 saved places are close to planned days but not assigned yet.",
+    action: "Plan places",
+  },
+];
+
+const upcomingTrips = [
+  {
+    id: "europe-summer-2026",
+    title: upcomingTrip.title,
+    dates: upcomingTrip.dates,
+    where: "Rome, Stockholm, Ljusdal, Pula, Venice and Florence",
+    cost: upcomingTrip.cost,
+    meta: `tracked so far · You ${tripCostTotals[0].total} · Hannah ${tripCostTotals[1].total}`,
+  },
+  {
+    id: "bali-birthday-2026",
+    title: "Bali birthday escape",
+    dates: "2-9 Oct",
+    where: "Canggu, Ubud and Uluwatu",
+    cost: "$3,240",
+    meta: "4 travellers · 12 saved places · 83 days to go",
+  },
+];
 
 const pastTrips = [
   { title: "Japan spring notes", dates: "Apr 2025", cost: "$3,940" },
@@ -251,6 +294,191 @@ const tripLegs = [
   },
 ];
 
+const baliTripLegs = [
+  {
+    id: "canggu",
+    label: "Canggu",
+    dates: "2-5 Oct",
+    base: "Berawa villa",
+    days: [
+      {
+        id: "bali-1",
+        label: "Day 1",
+        date: "Fri 2 Oct",
+        title: "Arrival and villa check-in",
+        summary: "Land in Denpasar, transfer to Canggu and keep dinner nearby.",
+        distance: "1.6 km",
+        items: [
+          {
+            time: "14:20",
+            label: "Arrive in Denpasar",
+            detail: "DPS airport · imported flight booking",
+            icon: Plane,
+          },
+          {
+            time: "16:30",
+            label: "Check in Berawa villa",
+            detail: "Four travellers · accommodation tab",
+            icon: Hotel,
+          },
+          {
+            time: "19:00",
+            label: "Birthday dinner shortlist",
+            detail: "Saved restaurants near Canggu",
+            icon: MapPin,
+          },
+        ],
+      },
+      {
+        id: "bali-2",
+        label: "Day 2",
+        date: "Sat 3 Oct",
+        title: "Cafes, beach clubs and saved boutiques",
+        summary: "Use saved Google places to cluster coffee, shops and sunset drinks.",
+        distance: "3.8 km",
+        items: [
+          {
+            time: "09:30",
+            label: "Baked Canggu",
+            detail: "Saved under Bakeries · brunch option",
+            icon: MapPin,
+          },
+          {
+            time: "13:00",
+            label: "Boutique loop",
+            detail: "Saved shops around Berawa and Batu Bolong",
+            icon: Map,
+          },
+          {
+            time: "17:30",
+            label: "Sunset drinks",
+            detail: "Beach club shortlist · split costs with four travellers",
+            icon: CalendarDays,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ubud",
+    label: "Ubud",
+    dates: "5-7 Oct",
+    base: "Jungle stay",
+    days: [
+      {
+        id: "ubud-1",
+        label: "Day 4",
+        date: "Mon 5 Oct",
+        title: "Transfer to Ubud",
+        summary: "A slower transfer day with one optional saved lunch stop.",
+        distance: "2.1 km",
+        items: [
+          {
+            time: "10:00",
+            label: "Private driver",
+            detail: "Canggu to Ubud · transport tab",
+            icon: Train,
+          },
+          {
+            time: "15:00",
+            label: "Check in jungle stay",
+            detail: "Accommodation for four travellers",
+            icon: Hotel,
+          },
+        ],
+      },
+      {
+        id: "ubud-2",
+        label: "Day 5",
+        date: "Tue 6 Oct",
+        title: "Rice terraces and spa time",
+        summary: "AI keeps the morning active and the afternoon relaxed.",
+        distance: "4.4 km",
+        items: [
+          {
+            time: "08:30",
+            label: "Tegalalang rice terrace",
+            detail: "Saved viewpoint · early start suggested",
+            icon: MapPin,
+          },
+          {
+            time: "15:00",
+            label: "Spa booking",
+            detail: "Custom event · split four ways",
+            icon: CalendarDays,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "uluwatu",
+    label: "Uluwatu",
+    dates: "7-9 Oct",
+    base: "Clifftop stay",
+    days: [
+      {
+        id: "uluwatu-1",
+        label: "Day 6",
+        date: "Wed 7 Oct",
+        title: "Cliffs and beach dinner",
+        summary: "Saved beaches and dinner options grouped around sunset.",
+        distance: "3.2 km",
+        items: [
+          {
+            time: "11:00",
+            label: "Bingin Beach",
+            detail: "Saved beach · flexible swimming stop",
+            icon: MapPin,
+          },
+          {
+            time: "18:00",
+            label: "Clifftop birthday dinner",
+            detail: "Custom event · four travellers",
+            icon: CalendarDays,
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const tripDetails = {
+  "europe-summer-2026": {
+    title: upcomingTrip.title,
+    description:
+      "Long trips are grouped by leg first, then by day, so six weeks of bookings, places and AI suggestions stay manageable.",
+    legs: tripLegs,
+    stats: [
+      ["Tracked spend", "$5,367"],
+      ["Imported bookings", "14"],
+      ["Saved places", "38"],
+      ["Planned walking", "18.6 km"],
+    ],
+    costTotals: tripCostTotals,
+    mapCopy: "Saved places, bookings and daily routes stay connected visually.",
+  },
+  "bali-birthday-2026": {
+    title: "Bali birthday escape",
+    description:
+      "A shorter four-person trip with each base split into days, saved Google places and shared birthday costs.",
+    legs: baliTripLegs,
+    stats: [
+      ["Tracked spend", "$3,240"],
+      ["Imported bookings", "6"],
+      ["Saved places", "12"],
+      ["Planned walking", "15.1 km"],
+    ],
+    costTotals: [
+      { person: "You", total: "$810" },
+      { person: "Hannah", total: "$810" },
+      { person: "Mia", total: "$810" },
+      { person: "Sam", total: "$810" },
+    ],
+    mapCopy: "Villa stays, saved cafes, beaches and dinner bookings grouped by base.",
+  },
+};
+
 const imports = [
   { title: "QF 937 BNE → PER", type: "Flight", status: "Added to transport", icon: Plane },
   { title: "Airbnb Trastevere Terrace", type: "Accommodation", status: "Check-in added", icon: Hotel },
@@ -268,16 +496,16 @@ const savedPlaces = [
 ];
 
 const stats = [
-  ["Estimated cost", "$4,820"],
+  ["Tracked spend", "$5,367"],
   ["Imported bookings", "14"],
   ["Saved places", "38"],
   ["Planned walking", "18.6 km"],
 ];
 
 const costBalances = [
-  { name: "Hannah", total: "$426", trips: "Rome flights, Pula concert, Florence train" },
+  { name: "You", total: "$2,578", trips: "Flights, accommodation, tours and bookings paid so far" },
+  { name: "Hannah", total: "$2,789", trips: "Rome flights, Pula concert, Florence train and shared stays" },
   { name: "Mia", total: "$118", trips: "Stockholm hotel and shared taxis" },
-  { name: "Sam", total: "$0", trips: "Balanced across all trips" },
 ];
 
 const friends = [
@@ -350,7 +578,7 @@ export function App() {
           {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
         </button>
         <div className="brand">
-          <img src={mysaLogo} alt="Mysa" className="brand-logo" />
+          <img src={collapsed ? mysaIcon : mysaLogo} alt="Mysa" className="brand-logo" />
         </div>
         <nav>
           {navItems.map((item) => {
@@ -425,65 +653,45 @@ function Dashboard({
   return (
     <section className="dashboard-grid">
       <div className="trip-focus">
-        <div className="tabs">
-          <button className={tripTab === "upcoming" ? "active" : ""} onClick={() => setTripTab("upcoming")}>
-            Upcoming
-          </button>
-          <button className={tripTab === "past" ? "active" : ""} onClick={() => setTripTab("past")}>
-            Past trips
-          </button>
-        </div>
-
-        {tripTab === "upcoming" ? (
-          <article className="hero-card">
-            <div className="gradient-strip" />
-            <div className="hero-card-content">
-              <p className="eyebrow">Next up</p>
-              <h2>{upcomingTrip.title}</h2>
-              <p>{upcomingTrip.dates} · {upcomingTrip.route}</p>
-              <div className="countdown-card">
-                <strong>{upcomingTrip.daysToGo}</strong>
-                <span>days to go</span>
-              </div>
-              <div className="metric-row">
-                <span>{upcomingTrip.cost}<small>estimated</small></span>
-                <span>{upcomingTrip.travellers}<small>travellers</small></span>
-                <span>{upcomingTrip.imported}<small>imports</small></span>
-                <span>{upcomingTrip.places}<small>saved places</small></span>
-              </div>
-              <button className="pill-button orange" onClick={() => setPage("trips")}>
-                View trip
-                <ArrowRight size={16} />
-              </button>
+        <article className="hero-card">
+          <div className="gradient-strip" />
+          <div className="hero-card-content">
+            <p className="eyebrow">Next up</p>
+            <h2>{upcomingTrip.title}</h2>
+            <p>{upcomingTrip.dates} · {upcomingTrip.route}</p>
+            <div className="countdown-card">
+              <strong>{upcomingTrip.daysToGo}</strong>
+              <span>days to go</span>
             </div>
-          </article>
-        ) : (
-          <div className="card-stack">
-            {pastTrips.map((trip) => (
-              <article key={trip.title} className="simple-card">
-                <span>{trip.dates}</span>
-                <strong>{trip.title}</strong>
-                <p>{trip.cost} tracked · places and notes saved for next time</p>
-              </article>
-            ))}
+            <div className="cost-share-row" aria-label="Tracked cost split">
+              {tripCostTotals.map((cost) => (
+                <span key={cost.person}>{cost.total}<small>{cost.person}</small></span>
+              ))}
+            </div>
+            <div className="metric-row">
+              <span>{upcomingTrip.imported}<small>imports</small></span>
+              <span>{upcomingTrip.places}<small>saved places</small></span>
+              <span>{upcomingTrip.travellers}<small>travellers</small></span>
+              <span>{upcomingTrip.cost}<small>tracked spend</small></span>
+            </div>
+            <button className="pill-button orange" onClick={() => setPage("trips")}>
+              View all trips
+              <ArrowRight size={16} />
+            </button>
           </div>
-        )}
+        </article>
       </div>
 
-      <aside className="side-panel">
-        <h3>How this trip is being built</h3>
-        <div className="step-list">
-          {[
-            ["1", "Forward emails", "Flights, stays and tickets become itinerary items."],
-            ["2", "Import Google places", "Saved lists become a searchable place library."],
-            ["3", "Create with AI", "AI suggests days around bookings and distance."],
-          ].map(([number, title, copy]) => (
-            <article key={number}>
-              <span>{number}</span>
+      <aside className="side-panel notifications-panel">
+        <h3>Helpful alerts</h3>
+        <div className="notification-list">
+          {dashboardNotifications.map((notification) => (
+            <article key={notification.title}>
               <div>
-                <strong>{title}</strong>
-                <p>{copy}</p>
+                <strong>{notification.title}</strong>
+                <p>{notification.detail}</p>
               </div>
+              <button type="button">{notification.action}</button>
             </article>
           ))}
         </div>
@@ -519,16 +727,7 @@ function Trips({
   if (!selectedTripId) {
     const visibleTrips =
       tripTab === "upcoming"
-        ? [
-            {
-              id: "europe-summer-2026",
-              title: upcomingTrip.title,
-              dates: upcomingTrip.dates,
-              where: "Rome, Stockholm, Ljusdal, Pula, Venice and Florence",
-              cost: upcomingTrip.cost,
-              meta: `${upcomingTrip.daysToGo} days to go · ${upcomingTrip.places} saved places`,
-            },
-          ]
+        ? upcomingTrips
         : [...pastTrips, { title: "Noosa girls weekend", dates: "Feb 2024", cost: "$1,120" }].map(
             (trip) => ({
               id: trip.title.toLowerCase().replaceAll(" ", "-"),
@@ -546,7 +745,10 @@ function Trips({
         <section className="panel large">
           <div className="trip-card-list">
             {visibleTrips.map((trip) => (
-              <article key={trip.id} className="trip-overview-card">
+              <article
+                key={trip.id}
+                className={tripTab === "past" ? "trip-overview-card past-trip-card" : "trip-overview-card"}
+              >
                 <div>
                   <span>{trip.dates}</span>
                   <strong>{trip.title}</strong>
@@ -567,6 +769,9 @@ function Trips({
       </>
     );
   }
+
+  const selectedTrip =
+    tripDetails[selectedTripId as keyof typeof tripDetails] ?? tripDetails["europe-summer-2026"];
 
   return (
     <>
@@ -602,11 +807,11 @@ function Trips({
               Add
             </button>
           </div>
-          {tripSection === "overview" && <TripOverview />}
+          {tripSection === "overview" && <TripOverview trip={selectedTrip} />}
           {tripSection === "create" && <Create />}
-          {tripSection === "stats" && <Stats />}
+          {tripSection === "stats" && <Stats stats={selectedTrip.stats} costTotals={selectedTrip.costTotals} />}
         </div>
-        <MapPreview />
+        <MapPreview copy={selectedTrip.mapCopy} />
       </section>
       {isAddModalOpen && <AddEventModal onClose={() => setIsAddModalOpen(false)} />}
     </>
@@ -659,28 +864,25 @@ function AddEventModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function TripOverview() {
-  const [selectedLegId, setSelectedLegId] = useState(tripLegs[0].id);
-  const selectedLeg = tripLegs.find((leg) => leg.id === selectedLegId) ?? tripLegs[0];
+function TripOverview({ trip }: { trip: (typeof tripDetails)[keyof typeof tripDetails] }) {
+  const [selectedLegId, setSelectedLegId] = useState(trip.legs[0].id);
+  const selectedLeg = trip.legs.find((leg) => leg.id === selectedLegId) ?? trip.legs[0];
   const [selectedDayId, setSelectedDayId] = useState(selectedLeg.days[0].id);
   const selectedDay =
     selectedLeg.days.find((day) => day.id === selectedDayId) ?? selectedLeg.days[0];
 
   function selectLeg(legId: string) {
-    const nextLeg = tripLegs.find((leg) => leg.id === legId) ?? tripLegs[0];
+    const nextLeg = trip.legs.find((leg) => leg.id === legId) ?? trip.legs[0];
     setSelectedLegId(nextLeg.id);
     setSelectedDayId(nextLeg.days[0].id);
   }
 
   return (
     <>
-      <h2>Europe summer 2026</h2>
-      <p className="lede">
-        Long trips are grouped by leg first, then by day, so six weeks of bookings,
-        places and AI suggestions stay manageable.
-      </p>
+      <h2>{trip.title}</h2>
+      <p className="lede">{trip.description}</p>
       <div className="leg-selector" aria-label="Trip legs">
-        {tripLegs.map((leg) => (
+        {trip.legs.map((leg) => (
           <button
             key={leg.id}
             className={selectedLeg.id === leg.id ? "active" : ""}
@@ -825,13 +1027,13 @@ function Costs() {
         {costBalances.map((balance) => (
           <article key={balance.name}>
             <div>
-              <span>Owes you</span>
+              <span>Total assigned</span>
               <strong>{balance.name}</strong>
               <p>{balance.trips}</p>
             </div>
             <div className="balance-total">
               <strong>{balance.total}</strong>
-              <button>Balance</button>
+              <button>{balance.name === "You" ? "View" : "Balance"}</button>
             </div>
           </article>
         ))}
@@ -844,15 +1046,31 @@ function Costs() {
   );
 }
 
-function Stats() {
+function Stats({
+  stats: statItems = stats,
+  costTotals = tripCostTotals,
+}: {
+  stats?: string[][];
+  costTotals?: typeof tripCostTotals;
+}) {
   return (
-    <section className="stats-grid">
-      {stats.map(([label, value]) => (
-        <article key={label}>
-          <span>{label}</span>
-          <strong>{value}</strong>
-        </article>
-      ))}
+    <section className="stats-section">
+      <div className="stats-grid">
+        {statItems.map(([label, value]) => (
+          <article key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </article>
+        ))}
+      </div>
+      <div className="trip-cost-breakdown">
+        <span>Cost split for this trip</span>
+        <div className="cost-share-row compact">
+          {costTotals.map((cost) => (
+            <span key={cost.person}>{cost.total}<small>{cost.person}</small></span>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
@@ -906,7 +1124,7 @@ function SettingsPage() {
   );
 }
 
-function MapPreview() {
+function MapPreview({ copy = "Saved places, bookings and daily routes stay connected visually." }: { copy?: string }) {
   return (
     <aside className="panel map-panel">
       <div className="map-preview">
@@ -914,9 +1132,13 @@ function MapPreview() {
         <span className="pin one" />
         <span className="pin two" />
         <span className="pin three" />
+        <span className="pin four" />
+        <span className="pin five" />
+        <span className="pin six" />
+        <span className="pin seven" />
       </div>
-      <h3>Map-first planning</h3>
-      <p>Saved places, bookings and daily routes stay connected visually.</p>
+      <h3>Trip Map</h3>
+      <p>{copy}</p>
     </aside>
   );
 }
