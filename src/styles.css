@@ -836,11 +836,34 @@ em {
 }
 
 .timeline article {
-  grid-template-columns: 62px 28px minmax(0, 1fr);
+  grid-template-columns: 62px 28px minmax(0, 1fr) auto;
 }
 
 .timeline time {
   font-weight: 900;
+}
+
+.clickable-timeline-item {
+  cursor: pointer;
+}
+
+.clickable-timeline-item:hover,
+.clickable-timeline-item:focus-visible {
+  outline: 0;
+  color: var(--ink);
+  background: linear-gradient(90deg, rgba(255, 61, 18, 0.05), rgba(200, 145, 241, 0.08));
+}
+
+.timeline-cost-hint {
+  align-self: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--muted);
+  background: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 850;
+  white-space: nowrap;
 }
 
 .map-panel {
@@ -1043,6 +1066,7 @@ ul {
 }
 
 .balance-list,
+.itinerary-cost-list,
 .friend-list,
 .settings-list {
   display: grid;
@@ -1051,6 +1075,7 @@ ul {
 }
 
 .balance-list article,
+.itinerary-cost-list article,
 .friend-list article,
 .settings-list article,
 .cost-entry {
@@ -1069,6 +1094,7 @@ ul {
 }
 
 .balance-list span,
+.itinerary-cost-list span,
 .friend-list span {
   display: block;
   color: var(--muted);
@@ -1078,6 +1104,7 @@ ul {
 }
 
 .balance-list strong,
+.itinerary-cost-list strong,
 .friend-list strong,
 .settings-list strong {
   display: block;
@@ -1085,6 +1112,7 @@ ul {
 }
 
 .balance-list p,
+.itinerary-cost-list p,
 .friend-list p,
 .settings-list p,
 .cost-entry p {
@@ -1122,6 +1150,37 @@ ul {
   background: #ffffff;
 }
 
+.section-heading-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.section-heading-row h3 {
+  margin: 0;
+}
+
+.section-heading-row span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.itinerary-cost-list article {
+  background: #ffffff;
+}
+
+.itinerary-cost-list article > strong {
+  align-self: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .invite-toolbar {
   justify-content: flex-start;
 }
@@ -1150,6 +1209,10 @@ ul {
   padding: 34px;
   background: #ffffff;
   box-shadow: 0 28px 90px rgba(25, 20, 17, 0.18);
+}
+
+.itinerary-item-modal {
+  width: min(980px, 100%);
 }
 
 .modal-card h2 {
@@ -1192,7 +1255,8 @@ ul {
   text-transform: uppercase;
 }
 
-.event-form input {
+.event-form input,
+.event-form select {
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1200,6 +1264,11 @@ ul {
   color: var(--ink);
   background: var(--soft);
   outline: 0;
+}
+
+.event-form select:disabled {
+  opacity: 1;
+  appearance: none;
 }
 
 .form-grid {
@@ -1222,6 +1291,85 @@ ul {
   font-size: 0.74rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.itinerary-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 30px;
+  align-items: start;
+}
+
+.itinerary-detail-column,
+.itinerary-cost-column {
+  display: grid;
+  gap: 18px;
+}
+
+.itinerary-cost-column {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
+  background: var(--soft);
+}
+
+.itinerary-cost-column .pill-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.item-detail-list {
+  display: grid;
+  gap: 0;
+}
+
+.item-detail-list article {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 18px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.item-detail-list article:first-child {
+  border-top: 1px solid var(--line);
+}
+
+.item-detail-list span,
+.modal-section-heading span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.item-detail-list strong {
+  font-size: 0.96rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.modal-section-heading {
+  display: grid;
+  gap: 4px;
+  padding-top: 6px;
+}
+
+.modal-section-heading p {
+  margin: 0;
+}
+
+.item-cost-note,
+.cost-note {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  background: var(--soft);
+}
+
+.item-cost-note p,
+.cost-note {
+  margin: 0;
 }
 
 .stats-grid {
@@ -1281,7 +1429,8 @@ ul {
 
   .dashboard-grid,
   .two-column,
-  .stats-grid {
+  .stats-grid,
+  .itinerary-modal-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1329,5 +1478,14 @@ ul {
 
   .side-nav nav {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modal-card {
+    padding: 26px;
+  }
+
+  .item-detail-list article {
+    grid-template-columns: 1fr;
+    gap: 5px;
   }
 }

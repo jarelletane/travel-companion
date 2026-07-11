@@ -508,6 +508,36 @@ const costBalances = [
   { name: "Mia", total: "$118", trips: "Stockholm hotel and shared taxis" },
 ];
 
+const itineraryCosts = [
+  {
+    item: "Flight arrives",
+    trip: "Europe summer 2026",
+    day: "Rome · Day 1",
+    category: "Transport",
+    paidBy: "Hannah",
+    split: "You + Hannah",
+    amount: "$237",
+  },
+  {
+    item: "Check in",
+    trip: "Europe summer 2026",
+    day: "Rome · Day 1",
+    category: "Accommodation",
+    paidBy: "You",
+    split: "You + Hannah",
+    amount: "$1,820",
+  },
+  {
+    item: "Clifftop birthday dinner",
+    trip: "Bali birthday escape",
+    day: "Uluwatu · Day 6",
+    category: "Food",
+    paidBy: "Mia",
+    split: "Everyone",
+    amount: "$420",
+  },
+];
+
 const friends = [
   { name: "Hannah", trips: ["Europe summer 2026", "Japan spring notes"], access: "Can edit costs" },
   { name: "Mia", trips: ["Europe summer 2026"], access: "Can edit itinerary" },
@@ -820,9 +850,15 @@ function Trips({
 
 function AddEventModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="modal-backdrop" role="presentation">
-      <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="add-event-title">
-        <button className="modal-close" onClick={onClose} aria-label="Close add event modal">
+    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+      <section
+        className="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-event-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button type="button" className="modal-close" onClick={onClose} aria-label="Close add event modal">
           <X size={18} />
         </button>
         <span className="eyebrow">Custom itinerary event</span>
@@ -868,6 +904,9 @@ function TripOverview({ trip }: { trip: (typeof tripDetails)[keyof typeof tripDe
   const [selectedLegId, setSelectedLegId] = useState(trip.legs[0].id);
   const selectedLeg = trip.legs.find((leg) => leg.id === selectedLegId) ?? trip.legs[0];
   const [selectedDayId, setSelectedDayId] = useState(selectedLeg.days[0].id);
+  const [selectedItem, setSelectedItem] = useState<
+    (typeof selectedLeg.days)[number]["items"][number] | null
+  >(null);
   const selectedDay =
     selectedLeg.days.find((day) => day.id === selectedDayId) ?? selectedLeg.days[0];
 
@@ -917,18 +956,154 @@ function TripOverview({ trip }: { trip: (typeof tripDetails)[keyof typeof tripDe
         {selectedDay.items.map((item) => {
           const Icon = item.icon;
           return (
-            <article key={item.label}>
+            <article
+              key={item.label}
+              className="clickable-timeline-item"
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedItem(item)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setSelectedItem(item);
+                }
+              }}
+            >
               <time>{item.time}</time>
               <Icon size={18} />
               <div>
                 <strong>{item.label}</strong>
                 <p>{item.detail}</p>
               </div>
+              <span className="timeline-cost-hint">Details</span>
             </article>
           );
         })}
       </div>
+      {selectedItem && (
+        <ItineraryItemModal
+          item={selectedItem}
+          legLabel={selectedLeg.label}
+          dayLabel={selectedDay.date}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </>
+  );
+}
+
+function ItineraryItemModal({
+  item,
+  legLabel,
+  dayLabel,
+  onClose,
+}: {
+  item: (typeof tripLegs)[number]["days"][number]["items"][number];
+  legLabel: string;
+  dayLabel: string;
+  onClose: () => void;
+}) {
+  const detailRows =
+    item.icon === Plane
+      ? [
+          ["Departure", "Leaves Brisbane at 09:00 from International Terminal"],
+          ["Stopover", "Perth connection · 2 hr 15 min layover"],
+          ["Arrival", "Arrives Rome FCO Terminal 3 at 09:40"],
+          ["Source", "Parsed from forwarded Qantas email"],
+        ]
+      : item.icon === Hotel
+        ? [
+            ["Check-in", `${item.time} · Airbnb Trastevere Terrace Studio`],
+            ["Address", "Piazza di Santa Rufina, Trastevere"],
+            ["Booking", "Confirmation email imported into accommodation"],
+            ["Notes", "Keep first evening gentle and stay near the apartment"],
+          ]
+        : [
+            ["Time", `${item.time} on ${dayLabel}`],
+            ["Location", "Pinned from Google saved places"],
+            ["Why it fits", "Close to the current route and grouped by AI"],
+            ["Notes", item.detail],
+          ];
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+      <section
+        className="modal-card itinerary-item-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="itinerary-item-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button type="button" className="modal-close" onClick={onClose} aria-label="Close itinerary item details">
+          <X size={18} />
+        </button>
+        <span className="eyebrow">Itinerary item</span>
+        <h2 id="itinerary-item-title">{item.label}</h2>
+        <p>{item.detail}</p>
+        <div className="itinerary-modal-grid">
+          <div className="itinerary-detail-column">
+            <div className="modal-preview">
+              <span>Scheduled for</span>
+              <strong>{legLabel} · {dayLabel} · {item.time}</strong>
+            </div>
+            <div className="item-detail-list">
+              <article>
+                <span>Name</span>
+                <strong>{item.label}</strong>
+              </article>
+              <article>
+                <span>Category</span>
+                <strong>{item.icon === Plane ? "Transport" : item.icon === Hotel ? "Accommodation" : "Saved place"}</strong>
+              </article>
+              {detailRows.map(([label, value]) => (
+                <article key={label}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <aside className="itinerary-cost-column">
+            <div className="modal-section-heading">
+              <span>Cost details</span>
+              <p>Optional, attached to this itinerary item.</p>
+            </div>
+            <div className="event-form">
+              <label>
+                Cost
+                <input value="$237" readOnly />
+              </label>
+              <label>
+                Category
+                <input value="Transport" readOnly />
+              </label>
+              <label>
+                Paid by
+                <select value="Hannah" disabled>
+                  <option>Hannah</option>
+                  <option>Me</option>
+                  <option>Mia</option>
+                  <option>Sam</option>
+                </select>
+              </label>
+              <label>
+                Split with
+                <select value="Me + Hannah" disabled>
+                  <option>Me + Hannah</option>
+                  <option>Everyone</option>
+                  <option>Just me</option>
+                </select>
+              </label>
+            </div>
+            <button className="pill-button orange" onClick={onClose}>
+              Save details
+              <ArrowRight size={16} />
+            </button>
+          </aside>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -1020,8 +1195,8 @@ function Costs() {
   return (
     <section className="panel large">
       <p className="lede">
-        General tallies across all trips, with every expense assigned to a trip
-        and split with friends.
+        Costs are pulled from itinerary item details, then rolled up across trips
+        and friends.
       </p>
       <div className="balance-list">
         {costBalances.map((balance) => (
@@ -1038,9 +1213,21 @@ function Costs() {
           </article>
         ))}
       </div>
-      <div className="cost-entry">
-        <h3>Add expense</h3>
-        <p>Flights to Rome · $2,120 · split with Hannah · assigned to Europe summer 2026</p>
+      <div className="itinerary-cost-list">
+        <div className="section-heading-row">
+          <h3>Itinerary item costs</h3>
+          <span>Auto-pulled from trip days</span>
+        </div>
+        {itineraryCosts.map((cost) => (
+          <article key={`${cost.trip}-${cost.item}`}>
+            <div>
+              <span>{cost.trip} · {cost.day}</span>
+              <strong>{cost.item}</strong>
+              <p>{cost.category} · paid by {cost.paidBy} · split with {cost.split}</p>
+            </div>
+            <strong>{cost.amount}</strong>
+          </article>
+        ))}
       </div>
     </section>
   );
