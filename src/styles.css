@@ -870,6 +870,10 @@ em {
   min-height: min(420px, 74dvh);
 }
 
+.map-view-button {
+  margin-top: 18px;
+}
+
 .map-preview {
   position: relative;
   display: grid;
@@ -963,6 +967,168 @@ em {
   top: 22%;
   background: #ffffff;
   box-shadow: inset 0 0 0 3px var(--ink);
+}
+
+.trip-map-page {
+  display: grid;
+  gap: 24px;
+}
+
+.trip-map-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.trip-map-header h2 {
+  margin-bottom: 14px;
+  font-size: clamp(2.4rem, 5vw, 5.2rem);
+  line-height: 1;
+}
+
+.trip-map-header p {
+  max-width: 560px;
+  color: var(--muted);
+}
+
+.map-layer-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.map-layer-tabs button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 13px;
+  color: var(--muted);
+  background: #ffffff;
+  font-weight: 850;
+}
+
+.map-layer-tabs button.active {
+  color: #ffffff;
+  background: var(--ink);
+}
+
+.full-trip-map {
+  position: relative;
+  min-height: min(690px, 72dvh);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 61, 18, 0.16), rgba(200, 145, 241, 0.24)),
+    linear-gradient(24deg, transparent 0 34%, rgba(255, 255, 255, 0.78) 35% 36%, transparent 37%),
+    linear-gradient(108deg, transparent 0 43%, rgba(255, 255, 255, 0.7) 44% 45%, transparent 46%),
+    linear-gradient(152deg, transparent 0 56%, rgba(255, 255, 255, 0.62) 57% 58%, transparent 59%),
+    linear-gradient(90deg, rgba(17, 16, 14, 0.07) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(17, 16, 14, 0.07) 1px, transparent 1px),
+    #eeeeeb;
+  background-size: auto, auto, auto, auto, 72px 72px, 72px 72px, auto;
+  box-shadow: 0 24px 80px rgba(25, 20, 17, 0.08);
+}
+
+.route-line {
+  position: absolute;
+  width: 58%;
+  height: 12px;
+  left: 18%;
+  top: 48%;
+  border-radius: 999px;
+  background: rgba(17, 16, 14, 0.14);
+  rotate: -18deg;
+}
+
+.map-pin-button {
+  position: absolute;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 4px solid #ffffff;
+  border-radius: 999px;
+  color: transparent;
+  background: var(--orange);
+  box-shadow: 0 10px 24px rgba(25, 20, 17, 0.18);
+}
+
+.map-pin-button:hover,
+.map-pin-button.active {
+  transform: scale(1.12);
+}
+
+.map-pin-button.active {
+  box-shadow: 0 0 0 8px rgba(255, 61, 18, 0.16), 0 12px 28px rgba(25, 20, 17, 0.2);
+}
+
+.map-pin-button.hotel {
+  left: 30%;
+  top: 45%;
+  background: var(--ink);
+}
+
+.map-pin-button.day {
+  left: 52%;
+  top: 37%;
+}
+
+.map-pin-button.food {
+  left: 61%;
+  top: 55%;
+  background: var(--lilac);
+}
+
+.map-pin-button.view {
+  left: 42%;
+  top: 66%;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 4px var(--ink), 0 10px 24px rgba(25, 20, 17, 0.18);
+}
+
+.map-pin-button.transit {
+  left: 74%;
+  top: 29%;
+  background: var(--ink);
+}
+
+.map-info-card {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: grid;
+  gap: 8px;
+  width: min(320px, calc(100% - 48px));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(18px);
+}
+
+.map-info-card span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.map-info-card strong {
+  font-size: 1.15rem;
+}
+
+.map-info-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.map-info-card .pill-button {
+  justify-content: center;
+  margin-top: 8px;
 }
 
 .toolbar {
@@ -1441,6 +1607,14 @@ ul {
   .login-hero {
     grid-template-columns: 1fr;
   }
+
+  .trip-map-header {
+    display: grid;
+  }
+
+  .map-layer-tabs {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1478,6 +1652,16 @@ ul {
 
   .side-nav nav {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .full-trip-map {
+    min-height: 560px;
+  }
+
+  .map-info-card {
+    right: 14px;
+    bottom: 14px;
+    width: calc(100% - 28px);
   }
 
   .modal-card {

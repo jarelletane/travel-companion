@@ -32,7 +32,8 @@ type Page =
   | "imports"
   | "costs"
   | "invite"
-  | "settings";
+  | "settings"
+  | "tripMap";
 
 type TripTab = "upcoming" | "past";
 type TripSection = "overview" | "create" | "stats";
@@ -549,10 +550,12 @@ export function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [tripTab, setTripTab] = useState<TripTab>("upcoming");
   const [tripSection, setTripSection] = useState<TripSection>("overview");
+  const [mapTripTitle, setMapTripTitle] = useState(upcomingTrip.title);
 
   const pageTitle = useMemo(() => {
     if (page === "dashboard") return "Dashboard";
     if (page === "trips") return "Trips";
+    if (page === "tripMap") return "Trip Map";
     if (page === "places") return "My Places";
     if (page === "imports") return "Imports";
     if (page === "costs") return "Cost tracking";
@@ -633,22 +636,24 @@ export function App() {
       </aside>
 
       <section className="main-content">
-        <header className="app-header">
-          <div>
-            {page !== "dashboard" && (
-              <button className="back-button" onClick={() => setPage("dashboard")}>
-                <ChevronLeft size={15} />
-                Back to dashboard
-              </button>
-            )}
-            <p className="eyebrow">{pageTitle}</p>
-            <h1>{page === "dashboard" ? "Your next trip is ready." : pageTitle}</h1>
-          </div>
-          <button className="pill-button">
-            <Plus size={17} />
-            Add new
-          </button>
-        </header>
+        {page !== "tripMap" && (
+          <header className="app-header">
+            <div>
+              {page !== "dashboard" && (
+                <button className="back-button" onClick={() => setPage("dashboard")}>
+                  <ChevronLeft size={15} />
+                  Back to dashboard
+                </button>
+              )}
+              <p className="eyebrow">{pageTitle}</p>
+              <h1>{page === "dashboard" ? "Your next trip is ready." : pageTitle}</h1>
+            </div>
+            <button className="pill-button">
+              <Plus size={17} />
+              Add new
+            </button>
+          </header>
+        )}
 
         {page === "dashboard" && (
           <Dashboard tripTab={tripTab} setTripTab={setTripTab} setPage={setPage} />
@@ -659,8 +664,13 @@ export function App() {
             setTripTab={setTripTab}
             tripSection={tripSection}
             setTripSection={setTripSection}
+            onViewMap={(title) => {
+              setMapTripTitle(title);
+              setPage("tripMap");
+            }}
           />
         )}
+        {page === "tripMap" && <TripMapPage title={mapTripTitle} onBack={() => setPage("trips")} />}
         {page === "places" && <Places />}
         {page === "imports" && <Imports />}
         {page === "costs" && <Costs />}
@@ -735,11 +745,13 @@ function Trips({
   setTripTab,
   tripSection,
   setTripSection,
+  onViewMap,
 }: {
   tripTab: TripTab;
   setTripTab: (tab: TripTab) => void;
   tripSection: TripSection;
   setTripSection: (section: TripSection) => void;
+  onViewMap: (title: string) => void;
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
@@ -841,7 +853,7 @@ function Trips({
           {tripSection === "create" && <Create />}
           {tripSection === "stats" && <Stats stats={selectedTrip.stats} costTotals={selectedTrip.costTotals} />}
         </div>
-        <MapPreview copy={selectedTrip.mapCopy} />
+        <MapPreview copy={selectedTrip.mapCopy} onViewMap={() => onViewMap(selectedTrip.title)} />
       </section>
       {isAddModalOpen && <AddEventModal onClose={() => setIsAddModalOpen(false)} />}
     </>
@@ -1311,7 +1323,70 @@ function SettingsPage() {
   );
 }
 
-function MapPreview({ copy = "Saved places, bookings and daily routes stay connected visually." }: { copy?: string }) {
+function TripMapPage({ title, onBack }: { title: string; onBack: () => void }) {
+  const [activeLayer, setActiveLayer] = useState("Day 2");
+  const [selectedPin, setSelectedPin] = useState("Pantheon area");
+  const mapPins = [
+    ["Hotel", "Trastevere stay", "Check-in · 15:00", "hotel"],
+    ["Day 2", "Pantheon area", "History, coffee and saved bakeries", "day"],
+    ["Food", "Forno Campo de' Fiori", "Saved bakery · add to afternoon", "food"],
+    ["View", "Giardino degli Aranci", "Sunset option · 16:30", "view"],
+    ["Transit", "Roma Termini", "Train connection", "transit"],
+  ];
+
+  return (
+    <section className="trip-map-page">
+      <button className="back-button trip-back-button" onClick={onBack}>
+        <ChevronLeft size={15} />
+        Back to trip
+      </button>
+      <div className="trip-map-header">
+        <div>
+          <p className="eyebrow">{title}</p>
+          <h2>Map</h2>
+          <p>Saved places, bookings and daily routes in one interactive view.</p>
+        </div>
+        <div className="map-layer-tabs" aria-label="Map layers">
+          {["All", "Day 1", "Day 2", "Food", "Transit"].map((layer) => (
+            <button
+              key={layer}
+              className={activeLayer === layer ? "active" : ""}
+              onClick={() => setActiveLayer(layer)}
+            >
+              {layer}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="full-trip-map">
+        <div className="route-line" />
+        {mapPins.map(([type, label, detail, className]) => (
+          <button
+            key={label}
+            className={`map-pin-button ${className} ${selectedPin === label ? "active" : ""}`}
+            onClick={() => setSelectedPin(label)}
+          >
+            <span>{type}</span>
+          </button>
+        ))}
+        <aside className="map-info-card">
+          <span>Selected</span>
+          <strong>{selectedPin}</strong>
+          <p>{mapPins.find((pin) => pin[1] === selectedPin)?.[2]}</p>
+          <button className="pill-button orange">Add to day</button>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function MapPreview({
+  copy = "Saved places, bookings and daily routes stay connected visually.",
+  onViewMap,
+}: {
+  copy?: string;
+  onViewMap?: () => void;
+}) {
   return (
     <aside className="panel map-panel">
       <div className="map-preview">
@@ -1326,6 +1401,12 @@ function MapPreview({ copy = "Saved places, bookings and daily routes stay conne
       </div>
       <h3>Trip Map</h3>
       <p>{copy}</p>
+      {onViewMap && (
+        <button className="pill-button orange map-view-button" onClick={onViewMap}>
+          View map
+          <ArrowRight size={16} />
+        </button>
+      )}
     </aside>
   );
 }
