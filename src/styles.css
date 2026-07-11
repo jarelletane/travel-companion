@@ -494,7 +494,7 @@ em {
 .dashboard-grid,
 .two-column {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  grid-template-columns: minmax(520px, 1fr) minmax(320px, 420px);
   gap: 42px;
   align-items: start;
 }
@@ -1882,6 +1882,27 @@ ul {
   font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+@media (max-width: 1320px) {
+  .dashboard-grid,
+  .two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-focus,
+  .side-panel,
+  .panel {
+    padding: 28px;
+  }
+
+  .hero-card-content {
+    padding: 34px;
+  }
+
+  .side-panel {
+    max-width: none;
+  }
 }
 
 @media (max-width: 1060px) {
