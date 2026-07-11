@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   BarChart3,
+  Bell,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -8,6 +9,7 @@ import {
   Home,
   Hotel,
   Inbox,
+  Link,
   Mail,
   Map,
   MapPin,
@@ -17,12 +19,14 @@ import {
   Settings,
   Sparkles,
   Train,
+  User,
   UserPlus,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import mysaIcon from "./assets/mysa-icon.png";
 import mysaLogo from "./assets/mysa-logo.png";
+import romeRestaurant from "./assets/rome-restaurant.jpg";
 
 type Page =
   | "login"
@@ -551,6 +555,7 @@ export function App() {
   const [tripTab, setTripTab] = useState<TripTab>("upcoming");
   const [tripSection, setTripSection] = useState<TripSection>("overview");
   const [mapTripTitle, setMapTripTitle] = useState(upcomingTrip.title);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const pageTitle = useMemo(() => {
     if (page === "dashboard") return "Dashboard";
@@ -613,6 +618,28 @@ export function App() {
         <div className="brand">
           <img src={collapsed ? mysaIcon : mysaLogo} alt="Mysa" className="brand-logo" />
         </div>
+        <div className="notification-shell">
+          <button
+            className="nav-notification"
+            type="button"
+            title="Notifications"
+            onClick={() => setIsNotificationsOpen((value) => !value)}
+          >
+            <Bell size={18} />
+            <span className="notification-dot" />
+            {!collapsed && <span>Notifications</span>}
+          </button>
+          {isNotificationsOpen && (
+            <div className="notification-popover">
+              <span>Notifications</span>
+              <article>
+                <small>Flight</small>
+                <strong>QF 937 BNE → PER</strong>
+                <em>just added</em>
+              </article>
+            </div>
+          )}
+        </div>
         <nav>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -646,7 +673,16 @@ export function App() {
                 </button>
               )}
               <p className="eyebrow">{pageTitle}</p>
-              <h1>{page === "dashboard" ? "Your next trip is ready." : pageTitle}</h1>
+              {page === "dashboard" ? (
+                <div className="welcome-heading">
+                  <span>
+                    <User size={22} />
+                  </span>
+                  <h1>Welcome back Milly</h1>
+                </div>
+              ) : (
+                <h1>{pageTitle}</h1>
+              )}
             </div>
             <button className="pill-button">
               <Plus size={17} />
@@ -1187,22 +1223,35 @@ function Places() {
         <div className="toolbar">
           <label>
             <Search size={16} />
-            <input value="Search Google Places or your library" readOnly />
+            <input value="Search your library" readOnly />
           </label>
           <button className="pill-button">Import file</button>
           <button className="pill-button orange">Search Google</button>
         </div>
+        <div className="share-link-row">
+          <label>
+            <Link size={16} />
+            <input value="Paste Google Maps share link" readOnly />
+          </label>
+          <button className="pill-button orange">Add place</button>
+        </div>
         <div className="place-grid">
           {savedPlaces.map((place) => (
             <article key={place.title}>
-              <span>{place.category} · {place.added ? "In library" : "Search result"}</span>
-              <strong>{place.title}</strong>
-              <p>{place.note}</p>
-              <div className="place-actions">
-                <button className={place.added ? "added" : ""}>
-                  {place.added ? "Added" : "Add +"}
-                </button>
-                {place.added && <button>Remove</button>}
+              <img src={romeRestaurant} alt="" className="place-card-image" />
+              <div className="place-card-body">
+                <span>{place.category} · {place.added ? "In library" : "Search result"}</span>
+                <strong>{place.title}</strong>
+                <p>{place.note}</p>
+                <div className="place-actions">
+                  <button className={place.added ? "added" : ""}>
+                    {place.added ? "Added" : "Add +"}
+                  </button>
+                  {place.added && <button>Remove</button>}
+                  <button className="place-link-button" type="button" aria-label={`Open ${place.title}`}>
+                    <Link size={15} />
+                  </button>
+                </div>
               </div>
             </article>
           ))}
@@ -1218,9 +1267,13 @@ function Imports() {
         <Mail size={22} />
         <div>
           <h2>Forward travel emails to your trip inbox.</h2>
-          <p>Flights, hotels, trains, tickets and restaurant bookings are parsed into the right pages.</p>
+          <p>
+            Forward emails to <strong>plans@mysatrips.com</strong>. Flights, hotels,
+            trains, tickets and restaurant bookings are parsed into the right pages.
+          </p>
         </div>
       </div>
+      <h3 className="section-title">Recently added</h3>
       <div className="import-list">
         {imports.map((item) => {
           const Icon = item.icon;
@@ -1232,6 +1285,7 @@ function Imports() {
                 <strong>{item.title}</strong>
                 <p>{item.status}</p>
               </div>
+              <button type="button">Reassign</button>
             </article>
           );
         })}
