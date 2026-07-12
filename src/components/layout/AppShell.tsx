@@ -1,8 +1,10 @@
 import {
   ArrowRight,
   Bell,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Plus,
   User,
 } from "lucide-react";
@@ -23,10 +25,22 @@ type AppShellProps = {
 export function AppShell({ page, pageTitle, onPageChange, children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const currentNavItem =
+    navItems.find((item) => item.page === page) ??
+    navItems.find((item) => item.page === "trips") ??
+    navItems[0];
+  const CurrentNavIcon = currentNavItem.icon;
+
+  const handlePageChange = (nextPage: Page) => {
+    onPageChange(nextPage);
+    setIsMobileMenuOpen(false);
+    setIsNotificationsOpen(false);
+  };
 
   return (
     <main className={collapsed ? "app-shell nav-collapsed" : "app-shell"}>
-      <aside className="side-nav">
+      <aside className={isMobileMenuOpen ? "side-nav mobile-menu-open" : "side-nav"}>
         <button className="collapse-button" onClick={() => setCollapsed((value) => !value)}>
           {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
         </button>
@@ -55,6 +69,18 @@ export function AppShell({ page, pageTitle, onPageChange, children }: AppShellPr
             </div>
           )}
         </div>
+        <button
+          className="mobile-menu-toggle"
+          type="button"
+          aria-expanded={isMobileMenuOpen}
+          onClick={() => setIsMobileMenuOpen((value) => !value)}
+        >
+          <span>
+            <CurrentNavIcon size={18} />
+            <span>{currentNavItem.label}</span>
+          </span>
+          {isMobileMenuOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </button>
         <nav>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -62,16 +88,16 @@ export function AppShell({ page, pageTitle, onPageChange, children }: AppShellPr
               <button
                 key={item.page}
                 className={page === item.page ? "active" : ""}
-                onClick={() => onPageChange(item.page)}
+                onClick={() => handlePageChange(item.page)}
                 title={item.label}
               >
                 <Icon size={18} />
-                {!collapsed && <span>{item.label}</span>}
+                {(!collapsed || isMobileMenuOpen) && <span>{item.label}</span>}
               </button>
             );
           })}
         </nav>
-        <button className="logout-button" onClick={() => onPageChange("login")} title="Log out">
+        <button className="logout-button" onClick={() => handlePageChange("login")} title="Log out">
           <ArrowRight size={18} />
           {!collapsed && <span>Log out</span>}
         </button>
